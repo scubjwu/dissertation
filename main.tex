@@ -1,0 +1,671 @@
+%
+% File:     example.tex
+%
+% Document based on the template for thesis and dissertations
+% developed by Steven White and Malcolm Hutson.
+%
+% Extensively modified by Adam Lewis (awlewis@cacs.louisiana.edu) to
+% meet the UL Graduate School requirements as of Spring 2011. 
+%
+% Unless otherwise expressly stated, this work is licensed under the
+% Creative Commons Attribution-Noncommercial 3.0 United States License. To
+% view a copy of this license, visit
+% http://creativecommons.org/licenses/by-nc/3.0/us/ or send a letter to
+% Creative Commons, 171 Second Street, Suite 300, San Francisco,
+% California, 94105, USA.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+% OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+% MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+% IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+% CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+% TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+% SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+\documentclass[12pt]{report}	% The documentclass must be ``report''.
+
+% Dissertation package style file.
+\usepackage{template/uldiss}  		
+
+% 
+% Here is a collection of optional packages that can make your life
+% far more pleasant while writing your thesis, prospectus, or
+% dissertation.   You should tailor these to match the specific needs
+% for your document.
+%
+\usepackage{amsmath,amsthm,amsfonts,amscd,amssymb} % Some packages to write mathematics.
+\usepackage{eucal} % Euler fonts
+\usepackage{verbatim} % Allows quoting source with commands.
+% The listings package supports the pretty-printing of source code.
+% The listings packages supports the most commonly used programming
+% languages.
+\usepackage{listings}
+\lstloadlanguages{Matlab,C++,C,Pascal}
+\lstset{
+         basicstyle=\footnotesize\ttfamily, 
+         %numbers=left,              
+         numberstyle=\tiny,          
+         %stepnumber=2,              
+         numbersep=5pt,              
+         tabsize=2,                  
+         extendedchars=true,         
+         breaklines=true,            
+         keywordstyle=textbf,    
+         stringstyle=\ttfamily, 
+         showspaces=false,       
+         showtabs=false,         
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         %backgroundcolor=\color{lightgray},
+         showstringspaces=false  
+ }
+% The caption package is used for fancy formatting of figure, table, and
+% other captions.  It is very useful when combined with the listings package.
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+\usepackage{pdfpages}
+%
+% The graphicx package is the standard package for importing of graphics
+% into LaTeX documents.   Note that we configure the package to, by
+% default, look for PNG, JPEG, and PDF files in a sub-directory of the
+% current directory.
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.png,.jpg,.pdf}
+\graphicspath{{graphics/}}
+%
+% Use the subfig package for dealing with multiple part figures.
+\usepackage[caption=false,labelfont=sf,textfont=sf,captionskip=5pt]{subfig}
+% 
+% The comment package is useful when you use EMACS for editing LaTeX
+% documents.  The table editor in EMACS orgtbl-mode interfaces with this
+% package for easy editing of tables using the org-mode table editing
+% functions. 
+\usepackage{comment}
+
+%% imported packages
+%%
+\usepackage{xargs}
+
+\usepackage{mathpartir}
+\usepackage{mathtools}
+\usepackage{lambda,cc}
+\usepackage[noshare]{vlc}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{calc}
+%\usepackage[labelformat=simple]{subcaption}
+%\renewcommand\thesubfigure{(\alph{subfigure})}
+
+\usepackage{stmaryrd}
+\setcounter{tocdepth}{3}
+\usepackage{makecell}
+%\usepackage{setspace}
+
+\usepackage[inline]{enumitem}
+\usepackage{epstopdf}
+\usepackage{booktabs}
+
+\input{thesis.tex}
+
+\sloppy
+\sloppypar
+
+\renewcommand{\progind}{0pt}
+\newcommand{\cL}{{\cal L}}
+\newcommand{\parag}[1]{\medskip\noindent\textbf{#1}\ \ }
+%% end importing
+%%
+
+%\usepackage{draftwatermark}	% Uncomment this line to have the
+				% word, "DRAFT," as a background
+				% "watermark" on all of the pages of
+				% of your draft versions. When ready
+				% to generate your final copy, re-comment
+				% it out with a percent sign to remove
+				% the word draft before you run
+				% latex for the last time.
+%
+% Document Type
+%
+% Choose a document type by commenting out every other type.
+%\prospectus
+\dissertation
+%\masterthesis
+%\masterreport
+
+
+%
+% School Customizations 
+%
+% Select your school
+% If your school is not listed, this template has not been specifically  
+%   customized for you yet, but the Grad School requirements will be met.
+%   Try one that might be similar.
+
+\cacscmps
+%   ACM Transactions bibliography
+
+%\cacseecs
+%   ACM Transactions bilbiography
+
+%\schoolofmusic
+%   Chicago style bibliography with footnotes?
+
+%
+% Basic Information
+%
+
+\author{Baijun Wu}
+% Your name how it should normally appear across the document.
+% The graduate school requires that your name always appear identically
+%   every time that it is used. To help, we recommend use \theauthor
+%   wherever your name should be printed for consistency.
+
+\properauthor{Baijun Wu}
+% Your proper name for alphabetizing. (Used in the abstract.)
+% Last, First Middle Suffix
+
+\title{Towards To User Friendly Error Debugging}
+% The title of your thesis/dissertation. Use a tilde (~) for any
+%   spaces that should not be broken at line breaks.
+
+\dean{C. E. Palmer}
+ % The Dean of the Graduate School
+
+%\degree{Master of Science}
+% The full title of your degree. 
+% The default value is guessed by the document type and school.
+  
+%\major{Computer Science}
+  % Your major.
+  % The default value is guessed by your school.
+
+%\graduationmonth{Spring}      
+% Graduation semester, either Spring, Summer, or Fall, in the form
+% as `\graduationmonth{Fall}'. Do not abbreviate.
+% The default value (either Spring, Summer, or Fall) is guessed
+% according to the time of running LaTeX.
+
+% \graduationyear{2010} Graduation year, in the form as
+% `\graduationyear{2001}'.  Use a 4 digit (not a 2 digit)
+% number.  The default value is guessed according
+%to the time of running LaTeX.
+  
+\previousdegrees{
+Bachelor of Science, Sichuan University, 2008; 
+Master of Science, Sichuan University, 2011; 
+Doctor of Philosophy, University of Louisiana at Lafayette, \thegraduationmonth \ \thegraduationyear
+}
+% List all of your degrees, including the degree you are seeking with
+% this document!
+
+\abstractwordcount{120}
+% The number of words in your abstract.
+ % Unfortunately there is no clean way to count words in a section in Latex.
+  
+%
+%
+% Enter names of the member(s) of your committee. 
+% Put one name per line with the name in square brackets. 
+% The name on the last line, however, must be in curly braces.
+%
+% NOTE: The first member should be your supervisor.
+%
+% NOTE: Maximum six members. Minimum one member (supervisor).
+%
+\committeemembers
+	[Erwin Schr\"odinger]
+	{Albert Einstein}
+	
+\committeememberstitle
+	[Professor of Physics]
+	{Adjunct Professor of Math}
+
+%\supervisortitle{Dr.}   
+  % Your supervisor's title (Dr., Mrs., Mr., Sir, etc)
+  %
+  % The default value is "Dr."
+
+%
+% Change the	Hyphenation behavior.
+%
+%
+\hyphenation{FORTRAN Hy-phen-a-tion}
+% Manually specify how certain words should be hyphenated, if needed.
+% You may add words without hyphens to request that they not be hyphenated.
+
+%\hyphenpenalty=100000
+% If you want no hyphenation in your document at all, uncomment
+%   this line to set the hyphen penalty to an unreasonably
+%   high value. 
+
+%
+% Some optional commands to change the document's defaults.
+%
+%
+%\singlespacing
+%\oneandonehalfspacing
+
+%\singlespacequote
+%\oneandonehalfspacequote
+
+%\topmargin 0.125in	% Adjust this value if the PostScript file output
+			% of your dissertation has incorrect top and 
+			% bottom margins. Print a copy of at least one
+			% full page of your dissertation (not the first
+			% page of a chapter) and measure the top and
+			% bottom margins with a ruler. You must have
+			% a top margin of 1.5" and a bottom margin of
+			% at least 1.25". The page numbers must be at
+			% least 1.00" from the bottom of the page.
+			% If the margins are not correct, adjust this
+			% value accordingly and re-compile and print again.
+			%
+			% The default value is 0.125" 
+
+	
+%
+%The document starts here.
+%
+
+\makeindex              % Make the index
+
+\begin{document}
+
+\titlepage              % Produces the title page.
+
+\copyrightpage          % Produces the copyright page.
+
+\approvalpage           % Produces the approval page
+
+%
+% Dedication, epigraph, and/or acknowledgments are optional, but must
+% occur here.
+%
+%
+\begin{dedication}
+Dedicated to the people who I really care about.
+\end{dedication}
+
+\iffalse
+\begin{epigraph}
+If A is success in life,\\
+then A equals x plus y plus z.\\
+Work is x; y is play;\\
+and z is keeping your mouth shut.\\
+--Albert Einstein, \emph{Observer}, Jan. 15, 1950
+\end{epigraph}
+\fi
+
+\begin{acknowledgments}		% Optional
+Thank everyone....
+\end{acknowledgments}
+
+% Table of Contents will be automatically generated and placed here.
+\tableofcontents   
+% List of Tables will be placed here, if applicabl.e
+\listoftables      
+% List of Figures will be placed here, if applicabl.e
+\listoffigures     
+
+%
+% Actual text starts here.%
+%
+% Including external files for each chapter makes this document simpler,
+% makes each chapter simpler, and allows for generating test documents
+% with as few as zero chapters (by commenting out the include statements).
+% You can even change the chapter order by merely interchanging the order
+% of the include statements.
+%
+%\include{chapter-introduction}
+
+\chapter{Introduction}
+
+In this dissertation, I present my research on type error debugging.
+Understanding type error messages and fixing type errors is challenging for both novice and professional programmers.
+Type errors can be caused for various reasons, for example, 
+using wrong library functions,
+using constants as functions, 
+applying functions to arguments of wrong types, 
+missing and having extra pairs of parentheses, and so on. 
+In the first part of this dissertation, I present the insights about the type error debugging behaviors in practice, 
+which are exploited to develop an effective error debugger in the later part of this dissertation.
+
+This chapter motivates the needs of user friendly error messages
+by investigating the challenges of debugging type errors.
+It also outlines the structure of this dissertation and presents the contributions of this work.
+
+
+\section{Motivation}
+Type inference allows programs to be statically typed without
+the presence of full type annotations. Most functional languages,
+such as Haskell, ML, and OCaml support type inference, and many
+imperative languages, such as C++, C\#, and Java, have started to
+incorporate a limited form of type inference.
+While type inference helps to save type annotations, learning languages
+using type inference is quite challenging,
+in particular for those who have background in imperative languages~\cite{clack1995dys,joosten1993teaching}.
+Studies show that novice programmers tend to make type errors more often~\cite{chambers2012function,Heeren05:TQT,hage2006mining,tirronen2015understanding}, and
+one reason may be that they have difficulties in learning modern type systems~\cite{clack1995dys,chakravarty2004risks}.
+
+
+Understanding and fixing type errors is even harder~\cite{marceau2011measuring,marceau2011mind,tirronen2015understanding},
+since type error messages generated by existing type checkers are usually ineffective~\cite{marceau2011mind}.
+In particular, they may point to locations that are distant to real error causes,
+expose errors in internal jargon, or provide misleading fixing suggestions.
+Therefore, providing good quality type error messages
+is important for beginners to study functional programming.
+
+The problem of improving the quality of error messages has received
+extensive attention. Many different approaches have been developed,
+including error locating~\cite{Mcadam98:UST,Eo04:PSH,Zhang15:DTE,Pavlinovic14:FMT},
+type error slicing for locating all the possible locations that
+contribute to type errors~\cite{Schilling12:CFT,Haack03:TES},
+inconsistency identification for finding program locations leading to
+type conflicts~\cite{Yang00:ETE,Wazny06:TIT},
+error explanation explaining why type errors occur and why certain
+types are inferred~\cite{Chitil01:CET,jun2002explaining,Loncaric16:PFT},
+error reparation that generates informative messages to fix type errors,
+and interactive error debugging that allows users to move around
+program ASTs and inspect the type of each node~\cite{Brassel04:TH,Chitil01:CET}.
+
+
+While various methods have been proposed to locate
+error causes more accurately and 
+generate more informative change suggestions,
+%improve the quality of error messages,
+most of them work well under certain conditions.
+Some methods~\cite{CE14popl,CE14flops,Zhang14:tgd}
+work well when real error causes are
+at leaves of ASTs. Others~\cite{Lerner06:SSM,Pavlinovic15:PST}
+work well when there is only one type error but
+not so well when there are multiple type errors.
+
+%Therefore, we manually compute these statistical results and analyze them in our study.
+
+
+\section{Research Goals}
+
+So far, a good understanding about how type error debugging looks like
+in practice is missing. As a result, it's unclear whether the conditions
+for error debuggers to work well hold in practice or not.
+%
+There have been some efforts to collect relevant
+information about errors made by students
+~\cite{Hage09:Neon,tirronen2015understanding,chambers2012function,fenwick2009another,denny2012all}.
+Neon~\cite{Hage09:Neon} is a domain specific language designed to query
+program databases, which collected programs written by students learning Haskell.
+It can extract various characteristics of the student programs,
+for example, how the lengths of compiled modules evolve,
+and how the average and median values of compilation intervals
+change over a certain time period.
+However, some information, like how far away is 
+the error location
+given by the type debugger from the real error cause,
+can not be automatically generated by Neon.
+
+A comprehensive overview of the mistakes made by beginners in Haskell was presented by \cite{tirronen2015understanding}.
+The authors classified the errors made by students into three
+categories: syntax errors, type errors, and run-time errors,
+and then performed a fine-grained analysis for each category.
+They showed some difficulties, like misuses of pattern matching,
+in learning functional programming.
+They also suggested that a more effective strategy of teaching type systems
+is desirable.
+
+
+While Neon and the overview study give some insights about kinds of errors the beginners of
+functional programming made, they do not tell how errors were fixed and what students did.
+%
+This dissertation aims to address this problem by inspecting more than 2,700
+ill-typed programs from 3 data sets,
+recording various kinds of information about each type error, 
+and analyzing the statistical results to extract high-level insights.
+%
+The empirical study results show that the type errors, arising from errors in grouping constructs like parentheses and brackets,
+usually take more than 10 steps to fix and occur quite frequently in practice.
+This class of errors is called as nontructural errors,
+and existing error debuggers fail to generate precise and informative error messages for such errors.
+In this dissertation, I will present a solution that delivers high quality error messages to fix nonstructural errors.
+
+
+\section{Contributions and Outline of This Dissertation}
+
+In this section, I present the structure of the remainder of this dissertation,
+and along the way the contributions of this work are given.
+
+Chapter~\ref{sec:review} (\emph{Literature Review}) collects research related to error debugging behaviors,  
+type error debuggers and machine learning on programming languages.
+This chapter contains material from \cite{wu2017type} and \cite{wu2017learning}.
+
+Chapter~\ref{sec:background} (\emph{Background}) systematically explains under what conditions existing error debuggers work well
+based on general ideas underlying many debuggers.
+The result in this chapter is applicable to future debuggers that share the similar underlying ideas.
+This chapter contains material from \cite{wu2017type}.
+
+Chapter~\ref{sec:subjects} (\emph{Study Subjects}) presents the study subjects used in this work and
+discuss the methodology used to study the process of fixing type errors based on the study subjects.
+Five meaningful metrics are proposed to represent the real error debugging.
+This chapter contains material from \cite{wu2017type}.
+
+Chapter~\ref{sec:analysis} (\emph{Debugging Behavior Analysis}) shows the statistical results by analyzing the study subjects.
+Many interesting observations that inform future research directions are derived.
+This chapter contains material from \cite{wu2017type} and makes the following contributions.
+
+\begin{enumerate}
+\item The results in Section~\ref{sec:causes} show that about 45\% to 60\% of type errors are fixed by changing the structure of program ASTs 
+and only about 22\% to 37\% of them are fixed by changing single leaves.
+This indicates that most error debuggers won't work well in practice.
+
+\item The results in Section~\ref{sec:annotation} show that on average about 30\% of type errors are caused by wrong type annotations.
+This indicates that type annotations are unreliable for debugging ill-typed programs
+
+\item The results in Section~\ref{sec:effectiveness} show that more concrete and precise error messages tend to be more effective for users to debug type errors.
+
+\item The language features that cause type errors to be difficult to debug are presented in Section~\ref{sec:difficulty}.
+The results indicate that function composition related operations (\prog{(.)}, \prog{\$} and parentheses),
+point-free style function definitions, wrong type annotations, and wrong pattern matching often lead type error debugging to be challenging.
+\end{enumerate}
+
+Chapter~\ref{sec:features} (\emph{Nonstructural Type Error Representation}) presents the information extracted from error messages and program ASTs 
+to represent nonstructural errors which are common in practice as shown in Chapter~\ref{sec:analysis}, but yet are handled poorly by existing debuggers.
+Three kinds of information are considered: (1) the type conflicts, (2) the program structure around the error location,
+and (3) the error messages from the underlying debugger.
+This chapter contains material from \cite{wu2017learning} and makes the following contributions.
+
+\begin{enumerate}
+\item An algorithm for computing the differences between two types when they fail to unify is developed.
+As error debuggers always use, among others, the heuristic of type difference of conflicting types to rank multiple error locations~\cite{Chen14:CFT,Hage07:HTE},
+the proposed algorithm could be employed to develop more powerful error ranking heuristics.
+
+\item In total 14 features are extracted to effectively represent nonstructural errors.
+They provide a principled way to correlate type errors with program structures by covering a wide array of useful error information.
+\end{enumerate}
+
+Chapter~\ref{sec:solution} (\emph{Learning Nonstructural Errors}) provides the solution to generating user friendly error messages for nonstructural errors.
+This capter contains material from \cite{wu2017learning} and makes the following contributions.
+
+\begin{enumerate}
+\item The motivation for using machine learning in developing an effective debugger for nonstructural errors is justified.
+
+\item An algorithm for imbalanced classification problem is proposed to help determine if a type error is structural or nonstructural.
+
+\item The evaluation results of the proposed solution are given, demonstrating that the machine learning-based error debugger is effective and scalable.
+\end{enumerate}
+
+Chapter~\ref{sec:conclusion} (\emph{Conclusion}) closes this dissertation with a summary of other applications of using machine learning in programming area,
+the most important contributions of this work, and directions for future research.
+
+\chapter{Literature Review}
+\label{sec:review}
+
+\section{Error Debugging Behaviors}
+\label{sec:review:behavior}
+
+\section{Type Error Debuggers}
+\label{sec:reivew:debugger}
+
+\subsection{Methods Handling Nonstructural Errors}
+
+\subsection{Methods That Don't Handle Nonstructural Errors}
+
+\section{Machine Learning on Programming Languages}
+\label{sec:review:ml}
+
+
+\chapter{Background}
+\label{sec:background}
+
+\section{When Errors Are Due to Single Leaves}
+\label{sec:background:leaves}
+
+\section{When Type Annotations Are Correct}
+\label{sec:background:annotations}
+
+\chapter{Study Subjects}
+\label{sec:subjects}
+
+\section{Analyzed Datasets}
+\label{sec:subjects:db}
+
+\section{Finding the Reference Program}
+\label{sec:subject:ref}
+
+\section{Analysis Metrics}
+\label{sec:subject:metric}
+
+
+\chapter{Debugging Behavior Analysis}
+\label{sec:analysis}
+
+\section{Overview of Error Debugging in Practice}
+\label{sec:overview}
+
+\section{Where Were Error Causes?}
+\label{sec:causes}
+
+\section{Were Type Annotations Reliable?}
+\label{sec:annotation}
+
+\section{When Are Error Message Effective?}
+\label{sec:effectiveness}
+
+\section{What Language Features Are Difficult?}
+\label{sec:difficulty}
+
+\chapter{Nonstructural Type Error Representation}
+\label{sec:features}
+
+\section{Unifying Non-Unifiable Types}
+\label{sec:features:unify}
+
+\section{The Feature Vector}
+\label{sec:features:feature}
+
+\chapter{Learning Nonstructural Errors}
+\label{sec:solution}
+
+\section{Motivation for Using Machine Learning}
+\label{sec:solution:motivation}
+
+\section{The Proposed Approach}
+\label{sec:solution:approach}
+
+\subsection{Preliminaries of Machine Learning}
+
+\subsection{Data Preprocessing}
+
+\subsection{Imbalanced Classification}
+
+\subsection{Implementation}
+
+\section{Evaluation}
+\label{sec:solution:eval}
+
+
+\chapter{Conclusion and Future Work}
+\label{sec:conclusion}
+
+\section{Other Applications}
+\label{sec:conclusion:other}
+
+\section{Main Contributions and Future Directions}
+\label{sec:conclusion:close}
+
+%\include{chapter11}	
+
+%\include{chapter12}	
+%
+% Appendix/Appendices
+%
+% If you have only one appendix, use the command \appendix instead
+% of \appendices.
+%
+%\appendices
+
+%\include{chapter-appendix1}
+%\include{chapter-appendix2}
+%\include{chapter-appendix3}
+
+%
+% Generate the bibliography.
+%
+
+%\nocite{*}      % This command causes all items in the               %
+                % bibliographic database to be added to              %
+                % the bibliography, even if they are not             %
+                % explicitly cited in the text.                      %
+
+% Here the bibliography is inserted.
+% Replace "example" with the name of your ".bib" file
+\bibliography{error-reporting,me,paper}                      
+\index{Bibliography@\emph{Bibliography}}
+%
+
+
+%
+% Generate the index.
+% 
+%
+\printindex     % Include the index here. Comment out this line      
+%               % with a percent sign if you do not want an index .  
+%
+
+\begin{abstract}
+test
+\end{abstract}
+
+\iffalse
+\begin{biography}
+  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis
+  tristique nibh nec enim egestas lobortis. Cum sociis natoque penatibus
+  et magnis dis parturient montes, nascetur ridiculus mus. Praesent
+  vitae lorem a ante congue imperdiet. Aenean gravida lacus ac sem
+  pharetra facilisis laoreet elit facilisis. Integer ullamcorper blandit
+  lorem, at pharetra felis vestibulum a. Cras vitae elit non neque
+  lacinia euismod eget ac orci. Ut nibh ligula, porttitor eget facilisis
+  id, fringilla eu sapien. Vivamus in congue dui. Nunc lacus nunc,
+  ornare eu vulputate quis, auctor id lacus. Ut luctus interdum
+  ligula. Donec ac rhoncus urna. Ut suscipit nulla molestie libero
+  pretium sed lacinia elit commodo. Nulla a neque eget odio consequat
+  bibendum. Aliquam egestas sollicitudin eros at sollicitudin. Proin et
+  ipsum at dolor molestie rutrum vitae et leo.
+\end{biography}
+\fi
+
+\end{document}
+% The following comment block is used by the different flavors of EMACS and
+% the AUCTEX package to manage multiple documents.  In order for AUCTEX
+% to understand you're working with multiple files, you should define
+% the TeX-master variable as a file local variable that identifies your
+% master document.
+%
+% Please do not remove.
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "example.tex"
+%%% End: 
