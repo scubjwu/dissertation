@@ -111,12 +111,13 @@
 
 \input{thesis.tex}
 
-\sloppy
-\sloppypar
+%\sloppy
+%\sloppypar
 
 \renewcommand{\progind}{0pt}
 \newcommand{\cL}{{\cal L}}
 \newcommand{\parag}[1]{\medskip\noindent\textbf{#1}\ \ }
+\newcommand{\newCompiler}{\textsc{Learnskell}}
 %% end importing
 %%
 
@@ -290,16 +291,6 @@ Doctor of Philosophy, University of Louisiana at Lafayette, \thegraduationmonth 
 \begin{dedication}
 Dedicated to the people who I really care about.
 \end{dedication}
-
-\iffalse
-\begin{epigraph}
-If A is success in life,\\
-then A equals x plus y plus z.\\
-Work is x; y is play;\\
-and z is keeping your mouth shut.\\
---Albert Einstein, \emph{Observer}, Jan. 15, 1950
-\end{epigraph}
-\fi
 
 \begin{acknowledgments}		% Optional
 Thank everyone....
@@ -486,7 +477,8 @@ the proposed algorithm could be employed to develop more powerful error ranking 
 They provide a principled way to correlate type errors with program structures by covering a wide array of useful error information.
 \end{enumerate}
 
-Chapter~\ref{sec:solution} (\emph{Learning Nonstructural Errors}) provides the solution to generating user friendly error messages for nonstructural errors.
+Chapter~\ref{sec:solution} (\emph{Learning Nonstructural Errors}) provides the proposed debugger \newCompiler\ 
+to generating user friendly error messages for nonstructural errors.
 This capter contains material from \cite{wu2017learning} and makes the following contributions.
 
 \begin{enumerate}
@@ -503,28 +495,573 @@ the most important contributions of this work, and directions for future researc
 \chapter{Literature Review}
 \label{sec:review}
 
+The work of type error debugging is related to various research areas, including
+error understanding, debugging behaviors, the quality of error message,
+and error debugger design.
+This chapter collects the work related to all the study activities.
+
 \section{Error Debugging Behaviors}
 \label{sec:review:behavior}
+
+This section provides the discussion about previous work that try to understand how students behave when learning programming languages.
+
+\subsection{Comprehension of errors}
+
+Student programs were collected and errors made by students
+were analyzed by \cite{tirronen2015understanding}.
+The authors investigated various compile-time and run-time errors
+and presented the causes for different kinds of errors.
+Their results showed that type errors prevalence in beginners' programs.
+However, their work didn't try to understand how type
+errors were fixed and what students did.
+%Our work complements their findings on type error category with
+%detailed information about how type error debugging of novice programmers looks like.
+
+\cite{tirronen2014study} studied
+errors that occurred in student programs and
+provided a comprehensive description of
+common difficulties in learning modern type systems.
+However, the result is not from a statistical view.
+This work presents similar findings in Section~\ref{xxx}
+and explains the
+reasons of difficulties from the view of error debugging.
+
+\cite{hage2006mining} showed statistical
+results of errors by mining the program database we used
+in this paper.
+Their result was extracted using the DSL Neon~\cite{Hage09:Neon}.
+As the analysis was done automatically, the information that
+could be obtained was limited. For example, it is impossible
+to choose reference programs correctly, as we have shown that
+the first type correct program after the ill-typed one is not
+necessarily the reference program. It is also impossible to
+extract all the information presented in this paper as
+reference programs are needed to do so.
+
+\subsection{Programmer response to errors}
+
+\cite{chambers2012function} studied information sources programmers
+usually refer to when debugging functional
+programs.
+Their observations showed that students used
+code examples frequently
+when encountered errors.
+Their results support our finding in this paper that
+student programs may diverge to the references
+during error fixing process. Their study
+considered only a few human subjects, while this study is
+large scale and gives statical results.
+
+\cite{munson2016analyzing}
+showed that, when there are multiple errors,
+the students who handle only the first error
+instead of debugging all errors at once usually
+performed better.
+The authors showed positive correlation
+between high assignment scores and
+high probability of addressing only
+the first error in presence of multiple errors.
+%
+They suggested that a good practice to fix
+errors is to debug one error at a time.
+In our analysis, we also observed that
+students tended to handle one type error at each step.
+This would be useful for novice programmers, especially
+because there is a risk of producing bogus error messages
+when multiple errors are present in
+the same expression~\cite{Heeren05:TQT}.
+
+\cite{marceau2011mind} investigated the interaction between
+beginners and error messages.
+The authors concluded that error messages were
+inaccurate and not informative to students.
+Their work proposed several design
+suggestions for constructing IDEs and generating
+error messages.
+In contrast, this work gives insights
+why error messages are ineffective.
+
+\subsection{Effectiveness of error messages}
+
+\cite{marceau2011measuring} proposed a set of metrics to
+measure the effectiveness of
+error messages.
+They analyzed student edits
+in response to error messages generated by DrRacket.
+This work proposes a similar method to study
+the relationship between
+the concreteness of error messages and
+error situations at a finer-grained level.
+
+\cite{yang2000improved} defined a manifesto to show
+what good error messages look like and discussed
+the strengths and weakness of several type inference
+algorithms based on it.
+However, they did not provide justification
+for their suggestions.
+The results in this work support some of their claims,
+like error messages
+should be intuitive and source-based.
+
+\cite{chen2014let} investigated the idea
+of combining different error debuggers to improve
+error locating precision. They also considered
+an evaluation with the program database used
+in this paper. While their work
+chose the first programs that are well typed after
+ill-typed programs as references, this work chooses
+reference programs more appropriately by taking the
+intentions of students into consideration.
 
 \section{Type Error Debuggers}
 \label{sec:reivew:debugger}
 
-\subsection{Methods Handling Nonstructural Errors}
+In this section, I discuss the relation between the solution proposed in this work to handle nonstructural errors and
+three other lines of work: approaches that handle nonstructural errors, approaches that don't handle nonstructural errors,
+and other applications of machine learning to solve programming language problems.
 
-\subsection{Methods That Don't Handle Nonstructural Errors}
+\subsection{Approaches that Handle Nonstructural Errors}
 
-\section{Machine Learning on Programming Languages}
-\label{sec:review:ml}
+Helium \cite{Hage07:HTE} is a compiler that operates
+on a graph representation of the constraints it generates
+during type inference
+and uses heuristics to present the most likely error cause. One
+of these heuristics is the edit distance, which permutes leaves in
+an AST to reorder function arguments or parts of a
+tuple. It also tries to remove arguments or insert arguments and
+then decides whether the resulting program would type check \cite{Heeren03:HLH}.
+These heuristics work well in some cases. However, in many situations it
+reports that functions have too few or too many arguments erroneously.
+%as we saw earlier in the \prog{groepeer} example.
+%and evaluation result in Section~\ref{sec:eval} The evaluation result doesn't mentions too few arguments, etc.
+%
+The problem is that the constraint
+set generated is invalid, and these heuristics can't detect
+the actual error cause and make a suggestion that will fix it.
+%
+The debugger \newCompiler\ proposed in this work doesn't suffer from this problem by learning
+a relation between error situations (including conflicting types
+and program structure around the error causes) and the correct fixes.
+
+
+Seminal works by taking in an AST for the ill-typed program
+and then proceeding to run a searcher over the AST and
+making modifications that can remove nodes, change curried functions
+to tupled functions and vice versa, change a 1-element list containing an n-tuple to an n-element list, or commute leaf nodes \cite{Lerner07:STM}.
+In presence of multiple errors, it can apply triaging~\cite{Lerner07:STM}
+to try and fix multiple type errors in different locations
+It then employs heuristics to rank
+these fixes. For example, it favors constructive changes over removals.
+The modifications Seminal applies help to diagnose type
+errors in many cases. However, Seminal suffers from
+some problems. First, it doesn't work well when multiple errors
+happen together because it's hard for Seminal to identify the error
+cause, despite its triaging method.
+%
+Its approach to handling
+multiple related errors is to systematically focus on a particular
+expression and then remove sibling expressions until the type
+error is removed. Once the first removal combination is found, it
+proceeds to consider this case.
+This prevents exponential explosions in complexity
+that might come with considering all removal combinations,
+but can often miss other error fixes. For the  \prog{groepeer}
+example, it misses the error fix over \prog{drop n x}.
+%
+Second, Seminal doesn't scale well to large programs.
+For each modification of the program structure, Seminal calls
+the underlying OCaml compiler to check if the modification yields
+a well-typed programs. As program size increases, repeatedly calling
+the compiler becomes time consuming.
+%
+\newCompiler\ doesn't suffer from these problems because
+we can always extract a feature vector for each type error and
+then generate the corresponding error class. 
+For the \prog{groepeer} example,
+\newCompiler\ generates a concrete suggestion of changing \prog{++}
+to something else for the type error reported at the whole right
+hand side of the function.
+
+\cite{McAdam02:RTE} offers another approach to nonstructural errors, namely
+unification modulo linear isomorphism.
+This can be done with the help of AC-unification and rules for
+currying and uncurrying types, associating and
+commuting products of types, and some other rules.
+This approach can detect whether two types like
+\prog{$\tau_1 \to \tau_2 \to \tau_3$} and \prog{$\tau_2 \times \tau_1 \to \tau_3$} are isomorphic and then can detect what AST changes
+can cause a transformation from the actual type to the expected type.
+Due to the unification methods being used, this
+approach works the best if the given types already have the same
+primitive types. If one type has fewer spines, which is often the
+case when nonstructural error occurs, or if two types have different
+primitive types, which is the case when multiple type errors happen
+together, then this approach fails to deduce a nonstructural change.
+%
+\newCompiler\ doesn't suffer from these problems because the computaion
+of type difference doesn't require any such rules to hold.
+
+\subsection{Approaches That Don't Handle Nonstructural Errors}
+
+The majority of existing error debugging approaches don't
+deal with nonstructural errors. Some approaches first generate
+constraints and then analyze them. For example, MinErrLoc~\cite{Pavlinovic14:FMT,Pavlinovic15:PST} mixes
+user defined criteria with SMT solving to determine the most likely error cause, while
+Skalpel \cite{Haack03:TES}
+uses an error slicing methodology to present multiple locations that contribute to
+the error. All of these debuggers directly analyze type constraints in some manner.
+%
+Other approaches
+might work on constraints during AST traversal, but they are still fundamentally constraint-based
+\cite{Lee98:PAF,Lee00:GLP,McAdam02:RTE,Yang00:ETE,Wand86:FST,Duggan95:ETI,Chitil01:CET}.
+Chameleon doesn't explicitly work with type constraints. It instead uses
+Constraint Handling Rules to express type constraints. It simplifies
+the constraint sets until it finds
+minimal unsatisfiable constraint sets and reports the locations corresponding to the
+constraints in that set~\cite{Stuckey03:ITD,Stuckey04:ITE,Wazny06:TIT}.
+These methodologies work well for debugging structural errors, for example, changing
+single or a few leaves, but don't work well for nonstructural errors.
+
+
+SHErrLoc~\cite{Zhang15:DTE}  uses a combination of Bayesian prediction and
+a constraint graph with an SMT solver to reason about type errors,
+along with a heuristic
+that favors messages that assume the programmer made less errors.
+%
+This approach reasons only about the constraints that are generated by
+other compilers, for example, GHC for Haskell.
+This means that SHErrLoc is still unlikely
+to provide an accurate fixes for nonstructural errors.
+The result in Section~\ref{xxx} shows that \newCompiler\
+performs much better than SHErrLoc for nonstructural errors.
+Note that SHErrLoc performs better than the underlying compiler Helium,
+\newCompiler\ and SHErrLoc may be combined 
+to achieve high error locating accuracy.
+
+\subsection{Machine Learning on Programming Languages}
+
+There have been many approaches that use machine learning to solve
+programming language problems. Many of them exploit syntactic
+information of programs. One such work is code modeling and code completion
+for PHOG \cite{Bielik2016:PPM}.
+The work by \cite{Allamanis:2013:MSC:2487085.2487127}
+mines a massive amount of code
+repositories to determine the productivity of programming languages.
+By considering the
+uniqueness of identifiers between code bases, this work
+determines whether code in a Javascript framework is
+utility or core logic \cite{Allamanis:2013:MSC:2487085.2487127}.
+Our work considers some syntactic information, for example
+program structures around the error cause, as part of the feature
+vector for machine learning.
+%
+There has been
+some work that involves semantics, such as detecting semantic
+duplication of code \cite{Sheneamer:2016:SCD}.
+
+The program synthesis community has also adopted machine learning.
+The work by \cite{Ellis:2015:ULP:2969239.2969348} provides a basis for
+unsupervised learning via program synthesis.
+DeepCoder \cite{DBLP:journals/corr/BalogGBNT16} uses input and output
+examples and a DSL to learn to write
+basic programs for programming competitions.
+The work by \cite{Zhu16:ALSS} used machine learning to learn
+the shape of data structures. \cite{Heule:2016:SSA:2980983.2908121}
+synthesized a semantics for x86-64 instructions by using program
+synthesis to learn bit-vector formulas, which will be leveraged
+by SMT solvers.
+%
+By using program synthesis, \cite{Bielik16:LSAD} constructed a static
+analyzer from a data set.
+It generated programs beyond the data set for use as counter-examples,
+which provide corner cases for the analyzer to verify that the
+static analysis generalizes well.
+The main difference between their work
+and ours is that they learn a static analysis by
+using runnable programs, while we use language semantics
+to determine why the input program can't run.
+
 
 
 \chapter{Background}
 \label{sec:background}
 
+This chapter investigates two conditions for existing error debuggers to work well:
+when type errors are caused by single leaves and when type annotations are correct.
+
 \section{When Errors Are Due to Single Leaves}
 \label{sec:background:leaves}
 
+Instead of investigating existing debuggers individually,
+I first identify common approaches shared by them and then investigate all approaches.
+The most two common approaches are
+\emph{search-based} and \emph{constraint-based}.
+
+\subsection{Search-based error debugging}
+\label{sec:background:leaves:search}
+
+The search-based approach was first proposed in~\cite{Bernstein95:DTE}.
+%
+It relies on two ingredients: a \emph{dummy}
+construct that could be instantiated to any type and
+an existing compiler. The dummy construct is
+available in most functional language, such as
+\prog{undefined} in Haskell
+and the \prog{raise} expression in ML and OCaml.
+%
+This approach debugs type error by replacing program subexpressions
+with the dummy and calls the compiler to decide whether
+the replaced expressions are well typed or not.
+%
+A main advantage of the search-based approach is that there is no
+need to implement special, and also complicated, inference
+algorithms to debug type errors.
+For this reason, this approach has been
+exploited in many different error debugging methods,
+including interactive
+debugging~\cite{Brassel04:TH,Tsushima13:ETD},
+error message
+searching~\cite{Lerner06:SSM,Lerner07:STM},
+error slicing~\cite{Schilling12:CFT},
+weighted type error
+slicing~\cite{TSUSHIMA14:WTE}, and error message
+enumerating~\cite{Tsushima14:ECF}.
+
+Given an ill-typed expression, a subexpression of
+it is a potential \emph{error cause} if
+replacing it with a dummy makes the resulting
+expression well typed and is not a potential error
+cause otherwise.
+For example, consider the following function
+\prog{vulOp} from the student program
+database~\cite{Heliumbp}. According to how students fixed
+the type error, the real error cause was \prog{"~"},
+which was replaced by \progsq{ }.
+%
+\begin{program}
+vulOp :: String -> Int -> String
+vulOp entry lengte = entry ++ (replicate (lengte - (length entry)) " ")
+\end{program}
+%vulOp entry lengte
+%  = entry ++ (replicate (lengte - (length entry)) " ")
+%
+%f lengte k = k ++ (replicate lengte - (length k) ' ')
+%
+%
+Using the search-based approach, all \prog{(++)} (list concatenation),
+\prog{replicate}, and \prog{"~"} are identified as error causes since
+replacing any of them with an \prog{undefined} makes \prog{vulOp}
+well typed. None of the other leaves is an error cause.
+
+Sometimes, an error cause includes
+multiple leaves, that is, all leaves must be changed at the
+same time to remove the type error.
+%To identify such error causes, all leaves must be changed at
+%the same time. 
+We couldn't identify such an error cause by
+considering these leaves individually since replacing a single
+leaf will not make the resulting expression well typed, and,
+as a result, the replaced leaf will not be considered as
+the error cause.
+%
+For example, the following function \prog{vulOp1}, obtained by changing
+\prog{(-)} to \prog{(<)} in \prog{vulOp}, contains an
+error cause that includes both \prog{(<)} and \prog{"~"}.
+%
+%
+\begin{program}
+vulOp1 entry lengte = entry ++ (replicate (lengte < (length entry)) " ")
+\end{program}
+%
+This error
+cause can't be identified unless we change
+\prog{(<)} and \prog{"~"} at the same time.
+%The typical workflow of the search-based approach is
+%
+
+In many cases, type errors are not caused by leaves and
+fixing them needs to restructure the original ASTs.
+We say such error causes are \emph{non-leaf}.
+%
+The following function \prog{odd} contains a non-leaf error cause
+since the type error is fixed by restructuring the AST from the left one in
+Figure~\ref{fig:nonstruc} to the right one.
+%
+\begin{program}
+odd, even :: Int -> Bool
+odd x = not . even x
+\end{program}
+%
+To identify non-leaf error causes, all subexpressions must be
+considered.
+
+In general, many potential error causes may be identified for
+any ill-typed program, and a set of
+heuristics~\cite{Hage07:HTE,Lerner07:STM} may be used to
+rank them to find the most likely error cause.
+A precondition for the search-based approach to
+work well is that the real error cause must be
+included in the set of all potential error causes.
+Thus, to not miss the real error cause that is a single leaf,
+the compiler needs to be called \nlevs\ times, where \nlevs\
+is the number of leaves. The compiler needs to be called
+$\nlevs^2$ times if the error cause includes two leaves and
+$2^\nlevs$ times if it is non-leaf.
+
+To avoid the high time complexity,
+most search-based methods consider replacing single leaves
+only. Consequently, they work well when type errors
+are caused by single leaves and not well in other situations.
+One exception is Seminal~\cite{Lerner06:SSM,Lerner07:STM} which
+could find non-leaf error fixes by considering arbitrary
+changes to the ill-typed expression. However, since it doesn't
+systematically consider all leaves, the error locating
+precision is not very high~\cite{CE14popl,Zhang14:tgd}.
+%
+Counter-factual
+typing (CFT) for debugging type errors~\cite{CE14popl,CE14flops}
+can also be considered as a search-based approach. To reduce the
+computational overhead, CFT uses
+variational typing~\cite{CEW12icfp,CEW14toplas} to reuse
+typing information. It could find all error causes in leaves
+but couldn't find non-leaf causes.
+
+\subsection{Constraint-based error debugging}
+\label{sec:background:leaves:constraint}
+
+As type inference is usually done in two phases, constraint
+generation and constraint solving, it is natural to
+analyze constraints to debug type errors when constraint
+solving fails.
+%
+Specifically, if a set
+of constraints \cs\ fails to solve, the goal is to find
+a constraint \con\ such that changing
+the subexpression giving rise to \con\ will fix the type
+error correctly. We call this approach constraint-based
+and call \con\ the \emph{faulty constraint}.
+%
+
+There have been many constraint-based error debugging methods,
+though they use the constraint information rather distinctly.
+Many methods directly analyze type constraints,
+for example, \toolMin~\cite{Pavlinovic14:FMT,Pavlinovic15:PST}
+uses SMT solver~\cite{Nieuwenhuis06:SSS} and some
+user-customizable criteria to locate the most likely error cause,
+and \toolM~\cite{Loncaric16:PFT} uses existing
+compilers to locate error cause, and \toolSk~\cite{Haack03:TES}
+uses relations between constraints to extract type
+error slices, which include all error locations that
+contribute to the type error. Some methods transform type
+constraints to graph representations to debug type errors,
+like \toolH~\cite{Heeren03:HLH,Heeren05:TQT},
+which uses a set of heuristics~\cite{Hage07:HTE} to locate
+error causes, and
+\toolS~\cite{Zhang14:tgd,Zhang15:DTE}, which uses a simple
+Bayesian model to locate error causes.
+
+Some methods don't use type constraints or don't
+explicitly separate constraint generation and constraint
+solving but could still be considered as
+constraint-based. For example,
+\toolCh~\cite{Stuckey03:ITD,Stuckey04:ITE,Wazny06:TIT}
+uses Constraint Handling Rules (CHRs)~\cite{CHR}
+to express type constraints and uses constraint
+simplification to find minimal unsatisfiable
+subsets of constraints for debugging type errors.
+Although Chameleon uses CHRs, its idea is very
+similar to that of \toolMin\ and thus could be considered
+as constraint-based. Many other constraint-based debugging methods
+generate and reason about the constraints while traversing
+ASTs~\cite{Lee98:PAF,Lee00:GLP,Mcadam98:UST,Yang00:ETE,Wand86:FST,Duggan95:ETI,Chitil01:CET}.
+%
+These methods analyze constraints incrementally and
+sometimes don't generate all constraints since the traversal
+maybe terminated once constraint solving fails. 
+%%(not easy....)
+%It's easy
+%to see that they are constraint-based.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\columnwidth]{images/nonstruc.pdf}
+\caption{The ASTs and constraints for \prog{not . even x} (left)
+and \prog{(not . even) x} (right).
+\ensuremath{@}s denote function applications.
+The parameter \prog{x} has the type $\tvf$.
+Annotations on edges denote types for the corresponding
+subexpressions. For example, $\tvvf$ is the type for the
+subexpression \prog{ (.) not}.}
+\label{fig:nonstruc}
+\end{figure}
+
+A precondition for
+constraint-based methods to work well is that the
+faulty constraint is included in the given set of
+constraints. However, this precondition fails
+for the type errors caused by missing pairs of parentheses
+or brackets.
+For example,
+consider debugging the type error for \prog{odd}
+introduced in Section~\ref{sec:background:leaves:search}.
+The \cs\ for \prog{odd} includes three constraints,
+as shown in the left of Figure~\ref{fig:nonstruc}, where it
+also presents the program AST. The constraints and AST for the
+expected correct definition of \prog{odd} are shown in
+the right of Figure~\ref{fig:nonstruc}. From the figure,
+we observe that no constraint in \cs\ could be identified
+as the faulty constraint such that changing the corresponding
+subexpression would bring \prog{odd} to the
+well-typed version, and consequently constraint-based debugging
+methods fail to locate the real error cause. In this example,
+both \toolH\ and \toolS\ blame the subexpression \prog{even x}
+as the error cause.
+
+%
+For other non-leaf type causes, such as extra pairs
+of parentheses, the precondition also fails to hold,
+which makes constraint-based approach not work well.
+We give evidence of this
+for Helium in Section~\ref{xxx}.
+%
+In addition, constraint-based methods don't work well when there are
+multiple error causes. One reason is that most
+error debuggers try to report type errors in as few locations
+as possible. As a result, even if the real error cause contains
+multiple leaves, the debugger may return an error cause with
+fewer leaves. For example, while the real error cause for
+\prog{vulOp1} includes both \prog{(<)} and \prog{"~"},
+Helium~\cite{Heeren05:TQT} suggests that the error cause
+is \prog{replicate}.
+
+Overall, constraint-based methods don't work well when a type
+error is non-structural or involves multiple leaves.
+
 \section{When Type Annotations Are Correct}
 \label{sec:background:annotations}
+
+While type inference can recover most omitted
+type annotations, it is considered as a good
+practice to add type annotations to at least
+top-level bindings\footnote{http://en.wikibooks.org/wiki/Haskell/Type\_basics\#Type\_signatures\_in\_code}
+for many reasons. As a form of documentation, type annotations improve
+program readability. Compilers often exploit type annotations
+to make type inference more efficient.
+
+Type annotations also help to increase error
+locating precision. For example,
+the function \prog{vulOp} is
+actually well typed if we remove its type annotation,
+and it is the type annotation that helps error debuggers to detect
+the type error in it. For this reason,
+all GHC, Helium~\cite{Heeren03:HLH,Heeren05:TQT},
+and \toolMin~\cite{Pavlinovic14:FMT,Pavlinovic15:PST}
+treat user-specified type annotations as hard
+constraints, meaning that they should always be trusted.
+Once there is some error in type annotations, the
+generated error messages is misleading, and following the
+message will lead to more type errors in the program.
+Thus, error debuggers work well when type annotations
+are correct.
 
 \chapter{Study Subjects}
 \label{sec:subjects}
@@ -566,7 +1103,7 @@ the most important contributions of this work, and directions for future researc
 \section{The Feature Vector}
 \label{sec:features:feature}
 
-\chapter{Learning Nonstructural Errors}
+\chapter{Learning Nonstructural Errors -- \newCompiler}
 \label{sec:solution}
 
 \section{Motivation for Using Machine Learning}
@@ -622,7 +1159,7 @@ the most important contributions of this work, and directions for future researc
 
 % Here the bibliography is inserted.
 % Replace "example" with the name of your ".bib" file
-\bibliography{error-reporting,me,paper}                      
+\bibliography{error-reporting,me,paper,pldi}                      
 \index{Bibliography@\emph{Bibliography}}
 %
 
@@ -638,24 +1175,6 @@ the most important contributions of this work, and directions for future researc
 \begin{abstract}
 test
 \end{abstract}
-
-\iffalse
-\begin{biography}
-  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis
-  tristique nibh nec enim egestas lobortis. Cum sociis natoque penatibus
-  et magnis dis parturient montes, nascetur ridiculus mus. Praesent
-  vitae lorem a ante congue imperdiet. Aenean gravida lacus ac sem
-  pharetra facilisis laoreet elit facilisis. Integer ullamcorper blandit
-  lorem, at pharetra felis vestibulum a. Cras vitae elit non neque
-  lacinia euismod eget ac orci. Ut nibh ligula, porttitor eget facilisis
-  id, fringilla eu sapien. Vivamus in congue dui. Nunc lacus nunc,
-  ornare eu vulputate quis, auctor id lacus. Ut luctus interdum
-  ligula. Donec ac rhoncus urna. Ut suscipit nulla molestie libero
-  pretium sed lacinia elit commodo. Nulla a neque eget odio consequat
-  bibendum. Aliquam egestas sollicitudin eros at sollicitudin. Proin et
-  ipsum at dolor molestie rutrum vitae et leo.
-\end{biography}
-\fi
 
 \end{document}
 % The following comment block is used by the different flavors of EMACS and
