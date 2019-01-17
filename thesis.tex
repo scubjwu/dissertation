@@ -58,20 +58,110 @@
 
 \newcommand{\progsq}[1]{\prog{\textquotesingle#1\textquotesingle}}
 \newcommand{\progdq}[1]{\prog{"#1"}}
+\newcommand{\subele}[2]{$#1_{#2}$}
+\newcommand{\arr}{$\to$}
+%\newcommmand{\arrtp}[2]{$#1 \to #2$}
+\newcommand{\newCompiler}{\textsc{Learnskell}}
+\newcommand{\lines}[2]{Lines (#1-#2) omitted for brevity}
+\newcommand{\TypeDiff}{\textit{TypeDiff}}
+\newcommand{\TopDiff}{\textit{TopDiff}}
+\newcommand{\BDiff}{\textit{BDiff}}
+\newcommand{\TopLevelDiff}{\textit{TopFuncDiff}}
+\newcommand{\TopBracketDiff}{\textit{TopBracDiff}}
+\newcommand{\FuncDiff}{\textit{FuncDiff}}
+\newcommand{\BracketDiff}{\textit{BracDiff}}
+\newcommand{\TypeDiffs}{\textit{TypeDiffs}}
+\newcommand{\TopDiffs}{\textit{TopDiffs}}
+\newcommand{\BDiffs}{\textit{BDiffs}}
+\newcommand{\TopLevelDiffs}{\textit{\TopLevelDiff{s}}}
+\newcommand{\FuncDiffs}{\textit{FuncDiffs}}
+\newcommand{\BracketDiffs}{\textit{\BracketDiff{s}}}
+\newcommand{\Unify}{\textit{Unify}}
+\newcommand{\where}{\textit{where}}
+\newcommand{\otherwise}{\textit{otherwise}}
+\newcommand{\Similarity}{\textit{Similarity}}
+\newcommand{\smallwedge}{\mathrel{\text{\raisebox{0.25ex}{\scalebox{0.8}{$\wedge$}}}}}
+\newcommand{\smallvee}{\mathrel{\text{\raisebox{0.25ex}{\scalebox{0.8}{$\vee$}}}}}
+\newcommand{\tempPercent}[1]{\textbf{\textcolor{red}{#1\%}}}
+\newcommand{\Ifit}{\textit{If}}
+\newcommand{\ifit}{\textit{if}}
+\newcommand{\thenit}{\textit{then}}
+\newcommand{\andit}{\textit{and}}
+\newcommand{\is}{\textit{is}}
+\newcommand{\form}{\textit{form}}
+\newcommand{\FE}{\textit{FE}}
+\newcommand{\data}{\mathcal{D}}
+\newcommand{\Var}{\textit{Var}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\tp}{t_p}
+\newcommand{\tn}{t_n}
+\newcommand{\fp}{f_p}
+\newcommand{\fn}{f_n}
+\newcommand{\pr}{\textit{pr}}
+\newcommand{\re}{\textit{re}}
 
-\newcommand{\highleveltodos}{\NOTE{
-Check if each subsection clearly says how the data sets are used.
+\renewcommand{\progind}{0pt}
+\newcommand{\cL}{{\cal L}}
+\newcommand{\parag}[1]{\medskip\noindent\textbf{#1}\ \ }
+\newcommand{\smote}{SMOTE}
+\newcommand{\studySubmission}{226}
+\newcommand{\randomForest}{Random-Forest}
+\newcommand{\benchf}{Haskell-1}
+\newcommand{\benchs}{Haskell-2}
+\newcommand{\bencht}{Haskell-3}
+\newcommand{\benchl}{Haskell-3}
+\newcommand{\years}{\benchf}
+\newcommand{\yeart}{\benchs}
+%
+\newcommand{\pui}[2]{\ensuremath{\prog{#1} =^? \prog{#2}}}
+%
+\newcommand{\mui}[2]{\ensuremath{#1 =^? #2}}
 
-\medskip
+\newcommand{\mt}{\ensuremath{\tau}}
 
-Add number of program sequences
+\newcommand{\mtexp}{\ensuremath{\mt_{\textit{exp}}}}
+\newcommand{\mtinf}{\ensuremath{\mt_{\textit{inf}}}}
 
-\medskip
 
-Translate dutch to english
+\newcommand{\ualg}{\ensuremath{\mathcal U}}
+\newcommand{\dalg}{\ensuremath{\mathcal D}}
+\newcommand{\td}{\textit{TD}}
+\newcommand{\subtt}{\ensuremath{\theta}}
+\newcommand{\sieves}{\textit{TD}}
 
-}}
+\newcommand{\nameva}{(a)}
+\newcommand{\namevb}{(b)}
+\newcommand{\namevc}{(c)}
+\newcommand{\namevd}{(d)}
+\newcommand{\nameve}{(e)}
+\newcommand{\namevf}{(f)}
+\newcommand{\namevg}{(g)}
+\newcommand{\namevh}{(h)}
+\newcommand{\namevi}{(i)}
+\newcommand{\namevj}{(j)}
+\newcommand{\namevk}{(k)}
+\newcommand{\namevl}{(l)}
 
+\newcommand{\level}{\textit{lev}}
+\newcommand{\union}[2]{\ensuremath{#1 \cup #2}}
+\newcommand{\idx}{\textit{idx}}
+\newcommand{\depth}{\textit{depth}}
+\newcommand{\length}{\textit{numArity}}
+
+\newcommand{\mtf}{\ensuremath{\mt_1}}
+\newcommand{\mts}{\ensuremath{\mt_2}}
+
+\newcommand{\restrict}[2]{\ensuremath{#1|_{#2}}}
+
+\newcommand{\nextIdx}[2]{\ensuremath{\textit{next}(#1,#2)}}
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+\newcommand{\intVal}{integral}
+\newcommand{\IntVal}{Integral}
 
 
 
