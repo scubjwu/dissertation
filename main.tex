@@ -34,7 +34,6 @@
 % for your document.
 %
 \usepackage{amsmath,amsthm,amsfonts,amscd,amssymb} % Some packages to write mathematics.
-\newtheorem{theorem}{Theorem}
 \usepackage{eucal} % Euler fonts
 \usepackage{verbatim} % Allows quoting source with commands.
 % The listings package supports the pretty-printing of source code.
@@ -3358,7 +3357,7 @@ such as type errors existing in application or constructor,
 may correlate with the presence of nonstructural errors.
 Helium generates 13 different kinds of error messages,
 and we assign each kind a different value from 1 to 13.
-We present these message kinds in Appendix~\ref{xxx}.
+We present these message kinds in Appendix~\ref{sec:msgkind}.
 For example, the information ``Type error in application'' for 
 the program \prog{groepeer} represents one message kind of Helium,
 and the feature is assigned the value ``1''.
@@ -3710,25 +3709,812 @@ to predict nonstructural errors effectively.
 \chapter{Learning Nonstructural Errors -- \newCompiler}
 \label{sec:solution}
 
+Machine learning can often deliver accurate solutions to problems
+that seem computationally intractable \cite{Moitra14:AAML,Harmeling00solvingsatisfiability}.
+In this chapter, we recast the problem of how to automatically diagnose type errors as a big data problem.
+Given a set of feature vectors of type errors and the corresponding class of each error,
+we apply a proper supervised machine learning (ML) algorithm to help us 
+determine if a type error is structural or nonstructural.
+
+%%To evaluate whether an ML model is suitable to our application scenario,
+%%it is desirable to have a program set containing both structural and nonstructural errors.
+%%Moreover, it would be best to use a large data set with programs written by novices.
+%%This information enables ML to learn cues from various errors, which can
+%%provide significant value to type error debugging.
+
+Figure~\ref{fig:arch} depicts the work flow of our approach, 
+which includes a training phase and a prediction phase.
+%
+In the training phase, 
+we use the ill-typed programs from a student program database~\cite{Hage09:Neon} 
+as our training data. 
+%This data set contains 1,604 ill-typed programs. 
+We use feature vectors (Section~\ref{sec:features:feature}) to store the information extracted from type errors.
+%We extract information from type errors
+%and generate feature vectors (Section~\ref{sec:feature-vector}).
+The feature extraction component
+can be implemented as a stand-alone algorithm or be implemented
+on top of some other error debugger or compiler, which we refer to as the
+underlying compiler. 
+At the end of the training phase,
+a machine learning model is learned 
+based on the extracted feature vectors.
+%and their corresponding labels.
+
+With the trained model, 
+we can determine whether 
+the type error in a given user program
+is a nonstructural error or not.
+In the prediction phase,
+the classification result of the model
+and the feature vector are sent to the
+suggestion generation algorithm, 
+so that a helpful error message
+for nonstructural errors
+can be generated.
+
+\begin{figure}
+\centering
+\includegraphics[scale=.6]{images/Learnskell.pdf}
+\caption{The overview of \newCompiler. The circles denote the input
+and output of the system. 
+%Unfilled shapes and
+%filled shapes denote the training and prediction
+%processes, respectively.
+The solid and dashed arrows
+reflect information flow in the training and prediction
+stages, respectively.
+}
+\label{fig:arch}
+\end{figure}
+
+\newCompiler\ produces the following message
+for the \prog{groepeer} program shown in Chapter~\ref{sec:features}.
+We have omitted
+the information about the expected type and the inferred type.
+%
+\begin{program}
+Add an open parenthesis before *drop* and a closing parenthesis after *x*
+And needs some further changes
+\end{program}
+%
+This message correctly diagnoses the nonstructural error and 
+provides a concrete change suggestion to guide the user to fix
+the type error. 
+
+
+We justify the motivation for using ML in Section~\ref{sec:ml:motivation}.
+In Section~\ref{sec:ml:back}, we review some concepts about
+measuring the error rate of an ML model
+and the bias-variance tradeoff.
+In Section~\ref{sec:ml:prep}, we discuss
+how to reduce the error rate by preprocessing our training data.
+We resolve the
+imbalanced classification problem
+and use a cross-validation method to
+select the appropriate ML algorithm in Section~\ref{sec:ml:smote-cv}.
 
 
 \section{Motivation for Using Machine Learning}
-\label{sec:solution:motivation}
+\label{sec:ml:motivation}
 
-\section{The Proposed Approach}
-\label{sec:solution:approach}
+The goal of \newCompiler\ is to produce
+user-friendly type error messages for nonstructural errors.
+We achieve it by adopting the idea of machine learning.
+In this section, we discuss why machine learning
+can help to make full use of error information for
+nonstructural error determination.
 
-\subsection{Preliminaries of Machine Learning}
+We use the following expressions to illustrate the discussion in
+this section.
+%
+\begin{program}
+v1 = map (not True) [False]   
+v2 = map True [False]   
+v3 = let func = not True 
+     in map func [False]
+\end{program}
+%
+For \prog{v1}, the type error is caused by the subexpression \prog{not True},
+with the expected type being \prog{a -> b} and the inferred type being \Bool.
+While these two types are non-unifiable, we observe that the expected type
+has two \emph{spine}s, \prog{a} and \prog{b}, and the inferred type has one
+spine, \Bool. Intuitively, a spine is the domain of a top-level
+arrow or the codomain of the last arrow at the top level. For example,
+the type \prog{(a->b) -> [a] -> [b]} has three spines. A function with $n$
+spines can be applied to $n-1$ arguments. Consequently, the fact that the
+expected type has one more spine than that of the inferred type in \prog{v1}
+indicates that the 
+erroneous subexpression has been applied to 
+an extra argument.
+In other words, we may remove the type error by removing the
+argument \prog{True}. Besides spine differences, bracket differences in
+types also provide insights about how type errors may be fixed.
 
-\subsection{Data Preprocessing}
+While type differences help to infer possible fixes, they alone
+are insufficient. Consider, for example, the expressions \prog{v2}
+and \prog{v3} below \prog{v1}. For both of them, the
+expected type and the inferred type are exactly the same as those
+for \prog{v1}. Inferring to remove an argument, as we did in \prog{v1},
+is totally misleading. One can't remove an argument from \prog{True}
+(the error cause in \prog{v2}) or \prog{func} (the error cause
+in \prog{v3}). We can, however, address this issue by extracting
+program structure information around the error cause.
+For example, the location of the error cause in the program
+AST helps us to decide whether ``Remove an argument'' is an appropriate
+suggestion because we can't remove an argument if the error cause is a leaf.
+Moreover, other kinds of program structure information
+are also useful. For example, the fact that \prog{func} is a let-bound
+variable indicates that the type error may be fixed by making
+\prog{func} into a function if we view it as a 
+point-free function~\cite{jones2003haskell}.
+
+We may think of extracting all relevant information and
+constructing changing rules manually. However, this
+idea suffers from three shortcomings.
+%
+% First, the more information we extract, the
+% better insights we may gain for diagnosing errors,
+First, it's likely that if we extract more information we
+can have better insights into diagnosing a given error.
+Unfortunately, the dimension of feature vectors could be high
+and similar errors can be represented by different feature
+combinations. This hinders us in deciding what kind of
+information is useful or not when constructing
+changing rules for errors.
+%
+Second, it's very hard to come up with appropriate, consistent, and
+coherent rules that make best use of extracted information.
+%
+For example, an error in a certain class
+could have many variants. In practice it's likely
+the rule we use to handle one error may not be able to handle its variants.
+%
+Finally, the generated suggestions lack statistical meaning,
+yielding high ratio of misleading messages. For example,
+while the suggestion of removing the argument \prog{True} to
+\prog{not} in \prog{v1} fixes the type error, the suggestion
+of changing the function \prog{not} (to, for example, \prog{const})
+does so, too. The question is, which fix should we suggest?
+
+All these problems could be solved nicely with machine learning.
+The key idea is using
+machine learning to construct
+a model that can detect when type errors are likely
+to be nonstructural.
+This enables \newCompiler\ to find nonstructural errors and 
+provide concrete change suggestions for them, 
+in a way that is largely orthogonal to other debugging approaches.
+
+\section{Preliminaries of Machine Learning}
+\label{sec:ml:back}
+
+In \newCompiler, we automatically extract a set of features
+for a given type error. We use $\FE$ to represent this feature
+extraction, which converts a type error $x$ into a finite feature
+vector $v=\FE(x)$. The data set is denoted by
+$D = \{(v_{1}, l_{1}), (v_{2}, l_{2}),...,(v_{i}, l_{i})\}$, where
+$l_{i}$ is the label value of the error class for the
+type error $x_{i}$.
+The model $\M$ generated by an ML algorithm
+can interpret the relationship between any pair of 
+$v$ and $l$ in $D$.
+%
+The generalization
+error $\varepsilon$ for the model $\M$ is estimated as follows~\cite{domingos2000unified}.
+\begin{align*}
+\varepsilon({\M}) &= \dfrac{1}{N}\sum_{i=1}^{N} P((v_i, p_i)\ |\ D) * L(l_i, p_i) \\
+&= E[P((v, p)\ |\ D) * L(l, p)]
+\end{align*}
+%
+We use $p=\M(v)$ to denote 
+the prediction result produced by this model for any feature vector $v$ in $D$.
+The loss function $L(l, p)$ is used to measure the cost of 
+predicting $p$
+with respect to the label value $l$.
+For example, the zero-one loss function is commonly used in classification,
+where $L(l, p) = 0$ if $ l = p$ and 1 otherwise.
+%
+\begin{definition}
+Assume the number of all possible values of $l$ is $N_l$,
+the optimal prediction for a feature vector $v$ is
+$p_*(v) = \arg\min_{p'}E_{l}[L(l, p')]$, 
+where $E_{l}[L(l, p')] = \dfrac{1}{N_l}\sum_{i=1}^{N_l} P(l_i\ |\ v) * L(l_i, p')$.
+The model $\hat{\M}$ is optimal if $\hat{\M}(v) = p_*$ for every $v$.
+\end{definition}
+
+\begin{definition}
+Assume the number of all possible values of $p$ is $N_p$,
+the main prediction $p_m = \arg\min_{p'}E_{p}[L(p, p')]$,
+where $E_{p}[L(p, p')] = \dfrac{1}{N_p}\sum_{i=1}^{N_p} P(p_i\ |\ D) * L(p_i, p')]$.
+In other words, $p_m$ is the most frequent prediction generated by ${\M}$.
+\end{definition}
+
+We apply bias-variance decomposition \cite{domingos2000unified}
+to $E[P((v, p)\ |\ D) * L(l, p)]$ and have:
+\begin{align*}
+\varepsilon({\M}) &= L(p_*, p_m) + c_1E[L(p, p_m)] + c_2E[L(l, p_*)]  \\
+&= \it{Bias}(v) + c_1\Var(v) + c_2\it{Noise}(v) 
+\end{align*}
+%
+The smaller the value of $\varepsilon({\M})$ is,
+the better the ML model we obtain. 
+The $\it{Bias}(v)$ denotes the systematic error of the model ${\M}$
+by comparing with the optimal model $\hat{\M}$.
+The $\Var(v)$ represents the fluctuations around the 
+central tendency of prediction results with respect to data set $D$,
+which is related to the precision of the classes.
+The $\it{Noise}(v)$ is independent of the ML algorithm,
+and it is usually unavoidable when estimating an ML model.
+
+
+To minimize the error rate in ML model,
+intuitively we shall minimize the bias and variance
+in the model at the same time.
+However, finding an optimal solution to minimize both bias and variance
+is very hard.
+The bias may be increased when reducing the variance, and vice versa.
+This is called bias-variance tradeoff \cite{geman1992neural}.
+For example, 
+the variance is 0 in an ML model if 
+this model always produces the same prediction result
+regardless of the training data.
+%
+However, the bias in the model would be considerably large.
+Such a situation in ML is called underfitting.
+We can gradually increase the number of classes and 
+eventually consider all type errors as
+one class. By doing so, we minimize the bias in the model, while the variance
+could be significant due to the large number of type error classes, 
+which causes the ML model to overfit in this situation.
+
+\section{Data Preprocessing}
 \label{sec:ml:prep}
 
-\subsection{Imbalanced Classification}
+To evaluate whether an ML model is suitable to our application scenario,
+it is desirable to have a program set containing both structural and nonstructural errors.
+Moreover, it would be best to use a large data set with programs written
+by novices.
+This information enables ML to learn cues from various errors, which can
+provide significant value to type error debugging.
 
-\subsection{Implementation}
+There has been work collecting student programs to investigate how beginners learned
+functional programming.
+The study by \cite{hage2006mining} built a database with
+over 60k student programs in Haskell.
+While students were debugging errors,
+each program that was
+compiled with Helium was recorded.
+This large program data set provides a sufficient amount of type errors for us
+to construct the training data.
+By comparing the ill-typed and well-typed versions of a student program,
+we are able to find out how exactly a type error
+was fixed in practice, which can be used to guide us
+to label the class of each error in the training data.
+We filtered out 1,604 ill-typed programs in year 2003-2004 from the program data set.
+For every type error, we extracted the feature vector and manually labelled
+its error class to construct our training data.
+%
+In this section we first use feature selection techniques to distill the extracted features,
+and then we describe the strategy used to design the labels for different error classes.
+
+In practice, most of the training data sets contain noise.
+Moreover, the potential bugs in the implementation of feature extraction
+and the possible mistakes in manually labelling data
+could intensify the noise.
+Reducing the noise is not trivial and most ML applications
+consider it as irreducible error.
+To reduce the value of $\it{Noise}(v)$,
+we try to handle the data noise in the training data, to some extent.
+We consider irrelevant and interdependent features as the noise, 
+since removing these features
+usually leads to a simpler and more flexible ML model.
+
+In Section~\ref{sec:features:feature} we showed that there are more than 10
+features extracted to represent the program structure around
+the error location. Note that there  exists
+dependencies among some features.
+For example, feature 5 denotes what kind of expression the offending node is.
+If the offending node is an operator, then we have feature 6 to describe
+the associativity of the operator.
+In addition, feature 7 shows the precedence of the offending node if
+it is an operator.
+Also, some feature values were redundant.
+For example, if the offending element is an expression, then
+its location in the AST is definitely at a node.
+We want to examine whether these attributes are
+relevant to the problem of type error debugging and
+to identify how important they are.
+
+To perform feature selection, we split
+the training data into two sets.
+We applied SGC classifier with $l_{1}$-norm \cite{Kearns:1994:ICL:200548}
+to help us choose features on one set,
+and we evaluated the ML model on the other.
+%
+Feature selection returns a subset of the relevant features
+and importance ranking of all the features.
+Incorporating our domain knowledge about nonstructural
+errors and the understanding of the extracted features,
+we can use the result of feature selection to decide
+whether we should remove a feature.
+For example,
+we had a feature to keep track if the ill-typed
+expression contained more than one identifier.
+We found out that its feature importance was the smallest,
+and we further realized that the feature was redundant since
+its value can be inferred by the location of the error in AST
+and the type of the offending node.
+Therefore, it is safe to remove this feature.
+In fact, the classification accuracy of our ML model
+was improved by 4\% thanks to that removal.
+
+We can also handle the data noise
+by reducing the complexity of features.
+It is possible that some features had many values,
+but only one value was significant.
+%
+For example, initially we kept track if a function binding had syntactic sugar for lists 
+in its parameters. We checked to see if some parameter was 
+a list with a head and a tail
+or if the function was point-free, etc. 
+This created a large range of values
+for this feature, which hurt the ML performance.
+Eventually, we used a binary value to represent
+whether a function definition was point-free or not only.
+%though we still kept the information about parameter style for
+%possible use in suggestion generation.
+
+%variance
+So far we have handled the data noise in the 
+designed feature vector.
+Next, we try to reduce the variance in the ML model.
+\newCompiler\ focuses on handling nonstructural errors.
+Accordingly, we first classify type errors into structural and nonstructural errors,
+denoted by the error spaces $\X^{s}$ and $\X^{ns}$, respectively.
+Since fixing nonstructural errors requires restructuring the AST by changing
+parentheses or brackets, we further shatter $\X^{ns}$ in 4 sub-spaces,
+namely "add brackets" as $\X^{ns}_{1}$, "remove brackets" as $\X^{ns}_{2}$,
+"pull identifier from parentheses" as $\X^{ns}_{3}$,
+and "merge identifiers" as $\X^{ns}_{4}$.
+We can iteratively shatter each sub-space into another 2 new
+sub-spaces. For example, the space $\X^{ns}_{3}$ can be
+shattered in $\X^{ns}_{3_{1}}$(pull 1 identifier from parentheses), and
+$\X^{ns}_{3_{>1}}$(pull more than 1 identifiers from parentheses).
+Moreover, by combining rules from handling parentheses and brackets,
+we could shatter a space in other sub-spaces 
+like $\X^{ns}_{3\&1}$(pull identifier from parentheses \& add brackets),
+and $\X^{ns}_{3\&2}$(pull identifier from parentheses \& remove brackets).
+For these data spaces that introduce more than one change
+to represent nonstructural errors,
+we do not consider them.
+This is because we can handle such errors by
+several fixing steps.
+%
+Nevertheless,
+some sub-spaces with only one change,
+which have very few error cases,
+could also be negligible.
+For example, $\X^{ns}_{1_{4}}$ indicates adding 4 brackets to fix the nonstructural error,
+while in practice this rarely happens.
+
+So when should we stop shattering the space $\X^{ns}$ and which sub-spaces we should
+assign labels to? Based on the concept of bias-variance tradeoff,
+the variance in the ML model decreases while the bias increases
+if we assign labels to the low dimensional spaces,
+and vice versa if we assign labels to the high dimensional spaces. 
+Our strategy is to reduce the value of $\Var(v)$ for the ML model first,
+and then we reduce the bias by selecting 
+the most appropriate ML algorithm after data preprocessing.
+Therefore, we assign different labels to
+the four error spaces $\X^{ns}_{i}$,
+where $i \in [1,2,3,4]$.
+Since changing the operator \prog{\$}
+has the same effect of adding or removing 
+parentheses, 
+%and thus involves nonstructural changes, %hence
+we created a label to represent such nonstructural error space $\X^{ns}_{s}$.
+In Section~\ref{sec:impl},
+we discuss how our suggestion
+generation algorithm determines the number of brackets needs to be changed
+or the number of identifiers needs to be pulled/merged.
+
+\section{Imbalanced Classification}
+\label{sec:ml:smote-cv}
+
+Most ML algorithms assume, by default, the data distribution of each class is balanced~\cite{he2009learning}.
+During data labelling,
+we found out the numbers of errors
+in class $\X^{ns}_{4}$ and
+$\X^{ns}_{s}$ are much smaller than other classes.
+The distribution ratio of these minority classes is only around 6\%.
+Conventional ML models usually fail to provide good prediction accuracy
+across the classes when learning from imbalanced training data.
+To deal with the imbalanced classification problem,
+we can adopt a cost-sensitive
+ML model or resample the data set.
+
+Cost-sensitive methods~\cite{elkan2001foundations,ting2002instance} require a proper cost function
+to describe the penalty for misclassifying any type error.
+To achieve a good accuracy, we usually need to heavily tune the parameters
+in the cost function. In addition, for different ML models, we need to use different
+cost functions and repeating the tuning process.
+% the corresponding function parameters again.
+Such approaches aim to improve the efficiency of a certain
+ML algorithm when having imbalanced data,
+while our goal is to find an ML algorithm that provides the best classification accuracy.
+Therefore, we do not use cost-sensitive methods to handle
+the imbalanced classification problem in this work.
+
+The essential idea of data resampling is to balance the 
+given data set. This can be achieved with 
+undersampling, which 
+removes some existing data in the majority classes~\cite{liu2009exploratory},
+or oversampling, 
+which creates some new data in the minority classes~\cite{Chawla:2002:SSM:1622407.1622416,wang2004imbalanced,jo2004class}.
+The resampling approach allows us to first
+balance the training data and then
+fairly evaluate the performance of different ML algorithms
+in an efficient way.
+Since we do not have an extremely large data set, applying undersampling
+methods to our data set may filter out many useful error cases,
+and consequently hurt the classification accuracy due to 
+the underfitting problem.
+A naive way to oversample the imbalanced data
+is randomly replicating the records in the minority classes.
+However, this would lead to the overfitting problem.
+
+To properly synthesize new data in the minority classes,
+the challenge is to make sure the generated data points
+do not destroy the characteristics of the structures
+of the original data set. Most of oversampling
+methods address this challenging by inserting 
+the synthesized
+data point into an area of the imbalanced
+data space such that the similarity distances
+between the new point and its neighbours are
+small. Thus, the measurement of 
+the similarity distance
+between two data points directly affects
+the quality of the oversampled data set.
+
+%
+SMOTE~\cite{Chawla:2002:SSM:1622407.1622416} is a popular
+data oversampling technique. In SMOTE, each
+feature in the feature vector contributes to the calculation
+of similarity distance. As a result, SMOTE works well when
+all features are independent. 
+%
+However, there exists some dependency among
+the features in our feature vector. For example, 
+the values of both feature 7 and 8 are partially
+dependent on the value of feature 5, as illustrated 
+in Figure~\ref{fig:fvoverview}. Therefore, directly
+applying SMOTE in our case may not work well since
+the contributions of the interdependent features to the similarity
+distance could be over-considered.
+%
+Instead of considering all features 
+individually in computing the similarity distance,
+we use the common vector, which is an
+intersection of two feature vectors,
+to measure the similarity distance between 
+two feature vectors. 
+Intuitively, two feature vectors that share 
+a large common vector may have a small similarity
+distance.
+%the more similar two feature vectors are,
+%the more number of features they should share.
+We formally developed our distance metric 
+%A new distance metric is proposed 
+based on the idea of 
+information entropy~\cite{shannon2001mathematical}
+of common vectors.
+We replaced the distance metric in SMOTE with our own distance metric.
+We refer to this new approach SMOTE-CV.
+
+\subsection{The Distance Measurement}
+\label{sec:smotecv}
+
+There are two general metrics called per-category
+feature importance (PCF) and cross-category feature importance (CCF) that
+can be used to measure the similarity distance between two data points \cite{creecy1992trading}.
+% use N_{f} instead of \N_{f}. let's just curry the notaion of functions.
+We use $N_{f}$ to denote the number of extracted features, and
+$N_{c}$ denotes the number of different classes.
+The basic PCF and CCF for two type error feature vectors, $u$ and $v$, are defined as:
+\begin{align*}
+PCF(u, v) &= \sum_{f}^{N_{f}}\omega(l_{u}, f) d(u_{f}, v_{f})\ \ \ \where\ \ \omega(l, f) = P(l\ |\ f) \\
+CCF(u, v) &= \sum_{f}^{N_{f}}\omega(f) d(u_{f}, v_{f})\ \ \ \ \ \ \ \where\ \ \ \omega(f) = (\sum_{i=1}^{N_{c}}P(l_{i}\ |\ f)^2)^k \\
+d(x, y) &= \left\{
+							\begin{array}{lr}
+							1\ \ \ \ \ \ifit\ x = y \\
+							0\ \ \ \ \ \ifit\ x \neq y
+							\end{array}
+				\right.
+\end{align*}
+
+We can replace the distance function $d(x,y)$ with any other
+function, or replace $\omega$ with any other weight metric
+%use any other weight metric to replace $\omega$
+to compute the similarity of $u$ and $v$.
+For example, SMOTE uses a different $d$ and sets the parameter $k=0.5$
+for $\omega$ to construct its own similarity metric.
+
+Note that for most of the similarity metrics based on PCF/CCF, they
+compute the contribution of each
+individual feature to the
+distance between two data point first, and
+then combine the contributions of
+all the features to generate the final result.
+However, calculating the similarity by following this manner does not
+work well in our case, since we have
+lots of interdependent features.
+For example, our features 6 and 7 are dependent
+on feature 5. Both values of feature 6 and 7 would be -1
+if the offending node in feature 5 is not an operator.
+Therefore, using PCF/CCF-based methods
+would over consider the similarity contribution from the interdependent features.
+%
+% I think this expression is wrong. Not what I mean.
+%could consider the interdependent features overly similar.
+%
+As a result,
+we proposed a new way to measure the similarity
+distance for a data set with dependent features.
+
+Intuitively, the more similar two feature vectors are,
+the more number of features they should share.
+We use $cv_{uv}$ to denote the common vector
+between two feature vectors $u$ and $v$,
+and we want to study
+how much information of the similarity between
+$u$ and $v$ that the $cv_{uv}$ can tell us.
+We use entropy $\delta = log_{2}(\frac{1}{P(cv_{uv})})$
+to represent such information, 
+where $P(cv_{uv})$ is the probability that
+the common vector $cv_{uv}$ exists among the feature vectors.
+The entropy $\delta$ indicates that
+infrequent common vectors convey more
+information about the similarity than frequent common vectors.
+For example, if $cv_{uv}$ appears more frequently in the feature vectors of
+the same error class, then it is reasonable to
+consider the two errors are less similar and vice versa.
+Therefore, we define the similarity distance between
+$u$ and $v$ within the class $q$ as:
+\begin{align*}
+\delta^{'}(u, v, q) &= H(cv_{uv}\ |\ q) \\
+                      &= -\omega'log_{2}(\omega') - (1-\omega')log_{2}(1-\omega') \\
+                      \where\ \ \omega' &= P(cv_{uv}\ |\ q)
+\end{align*}
+
+The entropy $\delta^{'}$
+is similar to the usage of PCF, which
+only considers the distance between two
+errors within the same class.
+The study by \cite{Mohri94anoptimal} showed that PCF is sensitive
+to the distribution of classes.
+Therefore, directly using $\delta^{'}$
+as a distance measurement may not be appropriate
+because of the imbalanced data in our application.
+To address this issue, we
+%prefer ( I do mean "refer to":) not prefer)
+refer to the concept of CCF, which
+tries to measure the similarity of two data points
+across all the classes. Accordingly, we define
+the new distance metric as
+$\delta(u, v) = \sum_{i=1}^{N_{c}}P(q_{i})\delta^{'}(u, v, q_{i})$,
+which averages $\delta^{'}$ over all the error classes.
+
+We implemented a new oversampling method with the distance metric $\delta$, 
+called SMOTE-CV, based on SMOTE.
+We evaluated the performance of SMOTE-CV
+by using random forest to classify the Year-03
+program set. The result in Figure~\ref{fig:cse} 
+shows that the performance for predicting
+errors in imbalanced classes is improved by adopting oversampling techniques.
+Although SMOTE outperforms than SMOTE-CV by about 1\% 
+on the classification of structural errors,
+SMOTE-CV yields better accuracy than SMOTE by about 6\%
+when dealing with the minority classes like ``Pull''.
+
+\begin{figure}
+\centering
+\setlength\tabcolsep{4pt}
+  \begin{tabular}{  l | ccc | ccc | ccc }
+\toprule
+    \multirow{2}{*}{Error Class}
+     & \multicolumn{3}{c|}{Precision} & \multicolumn{3}{c|}{Recall} & \multicolumn{3}{c}{$F_1$} \\
+        & Base & SMO & SMO-CV &  Base & SMO & SMO-CV &  Base & SMO & SMO-CV\\ 
+\midrule
+    Delete Brackets & 0.769 & 0.773 & 0.807 & 0.671 & 0.731 & 0.819 & 0.800 & 0.740 & 0.804\\ 
+    Merge & 0.858 & 0.824 & 0.853 & 0.925 & 0.944 & 0.906 & 0.887 & 0.878 & 0.873\\
+    Pull & 0.875 & 0.825 & 0.930 & 0.510 & 0.570 & 0.625 & 0.623 & 0.662 & 0.715\\
+    Add Brackets & 0.795 & 0.778 & 0.797 & 0.853 & 0.853 & 0.853 & 0.814 & 0.800 & 0.816\\
+    Has \prog{\$} & 0.750 & 0.723 & 0.867 & 0.600 & 0.850 & 0.800 & 0.650 & 0.741 & 0.813 \\
+    Structural & 0.847 & 0.895 & 0.883 & 0.868 & 0.850 & 0.851 & 0.856 & 0.871 & 0.866 \\
+\bottomrule
+  \end{tabular}
+    \caption{A comparison of oversampling techniques. 
+    We use the short names SMO and SMO-CV for SMOTE and SMOTE-CV, respectively.}
+    \label{fig:cse}
+\end{figure}
+
+
+\subsection{Model Selection}
+\label{sec:mlmodle}
+
+With the features extracted in Section~\ref{sec:features:feature},
+we use supervised learning to train a model for type error classification.
+Four traditional machine learning algorithms are considered,
+namely logistic regression~\cite{walker1967estimation}, 
+Support Vector Machine (SVM)~\cite{cortes1995support}, 
+decision tree~\cite{quinlan2014c4} and random forest~\cite{breiman2001random}.
+%
+We do not consider deep learning algorithms using neural networks as the classifier in \newCompiler\ for two reasons.
+First, deep learning algorithms usually require vast amounts of training data to train the model, 
+leading to a very low training speed.
+Second, the training process of neural networks requires manually tuning the hyper-parameters,
+which is tedious and hinders us from automating the error message generation.
+%
+In the next, We discuss the advantages and disadvantages of those evaluated supervised learning algorithms.
+
+\parag{Logistic Regression}
+%
+Logistic regression~\cite{walker1967estimation} is similar to generalized linear model~\cite{mccullagh1984generalized},
+which learns a linear boundary between classes.
+It is simple, efficient and robust, and thus widely used in practice.
+However, logistic regression does not work well for non-linear classification problems.
+
+\parag{Support Vector Machine}
+%
+Support Vector Machine (SVM)~\cite{cortes1995support} is a supervised learning algorithm that builds
+a model based on the training dataset to separate data into two classes
+such that the gap between two classes is as wide as possible.
+
+SVM is able to work efficiently in high dimensional spaces,
+and it can learn non-linear boundary by using ``kernel trick''~\cite{mika1999fisher}.
+%
+The main limitation of SVM is the choice of kernel functions.
+There are many kinds of kernels, such as Gaussian kernel, Fisher kernel, etc.
+In practice, it is hard to determine which kernel works the 
+best for a specific classification problem. 
+As a result, using SVM usually requires considerable effort to tune the hyper-parameters.
+We tested different kernel functions and found polynomial kernel with degree-2
+yields the best result in our case.
+
+\parag{Decision Tree}
+%
+The key idea of Decision Tree~\cite{quinlan2014c4} is to map
+the feature vectors and the labels based on a tree structure.
+The decision tree is constructed by recursively partitioning training data
+until its impurity is minimized.
+There are several metrics to measure the purity of the tree, such as entropy, gini index, etc.
+A node in a decision tree is a single prediction of a certain feature $x_i$ such that
+it can determine which subtree should be proceeded based on the value of $x_i$ of an input data.
+Each leaf of the decision tree represents a class label.
+
+Decision trees can work with little data and its predictions are easy
+to understand and interpret.
+However, the main drawback is that the learned model is often overfitting,
+which means that the prediction precision may be poor 
+in our case since the evaluated programs are diverse, coming from different students.
+
+\parag{Random Forest}
+%
+Random Forest~\cite{breiman2001random} constructs multiple decision trees based on the training data
+and uses the mean prediction of all trees as the final class.
+By randomly sampling data from the training data,
+different decision trees are learned from different data, 
+which improves the model generality.
+In addition, for each decision tree, a subset of features
+is randomly selected for training such that the correlation between
+learned trees is mitigated. 
+
+Random forests can make accurate prediction efficiently, 
+requiring little parameter tuning.
+Therefore, it works very well across different application scenarios. 
+The limitation of random forest is that it works as a black box, which 
+makes prediction results hard to interpret.
+
+\parag{Selection Result}
+We used cross-validation~\cite{kohavi1995study} to evaluate the
+performances of different ML algorithms based on the training data.
+The average accuracy and standard deviation are
+0.83 $\pm$ 0.08 for logistic regression,
+0.64 $\pm$ 0.09 for SVM with a degree-2 polynomial kernel, 
+0.83 $\pm$ 0.06 for SVM with a linear kernel, 
+0.82 $\pm$ 0.08 for decision tree,
+and 0.85 $\pm$ 0.07 for random forest with 100 trees.
+%
+Moreover, we tested random forest with 500 trees and 
+did not observe any difference from random forest
+with 100 trees. 
+%
+Since random forest yields the best performance over the others,
+we use it as the model to predict nonstructural errors in this work.
+
+\section{Implementation}
+\label{sec:ml:impl}
+
+We have implemented a prototype of \newCompiler\ using both Haskell and
+Python. We used Haskell for implementing feature extraction and
+suggestion generation. For each ill-typed program, we first call
+Helium to get the relevant information, including the error
+cause and the expected type and inferred type of the error cause. Note
+that the location returned by Helium could be
+very different from the location \newCompiler\ reports. For
+example, for the \prog{groepeer} example in Chapter~\ref{sec:features},
+Helium reports the error at \prog{groepeer} after \prog{++}, while our
+approach reports it at \prog{drop n x}. Based on the information
+returned by Helium, we apply the algorithms \ualg\ and \dalg\ from
+Section~\ref{sec:unify:alg} to compute the type difference and
+implement other functions to extract the features listed
+in Section~\ref{sec:features:feature}.
+
+We implemented SMOTE-CV in Python,
+and it was used to resample the extracted feature vectors from the training data.
+We fed the feature vectors to the \emph{scikit-learn} python package \cite{scikit-learn}, 
+which generated the ML model for capturing nonstructural errors.
+%
+For any feature vector
+of an ill-typed program, we provide it to the model, which will
+generate the classification result. The result
+includes two error classes, ordered by their corresponding probabilities.
+
+For each class, we use the following rules to generate suggestions.
+We collect all of the suggestions and select the first three.
+If the type error is classified as a structural error,
+we use the corresponding error message generated by Helium directly.
+Otherwise, the suggestion generation module 
+first checks the class of the
+%
+nonstructural error. 
+For the class ``has \prog{\$}'', 
+we simply suggest to remove \prog{\$} first. 
+If the class is ``Merge''
+or ``Pull'' (the meanings of them are defined
+in Section~\ref{sec:ml:prep}), then only one message is
+generated. In this case, the
+indices of the first two elements in \FuncDiff\ (defined in
+Section~\ref{sec:features:unify}) are used to
+decide where to add the parentheses or pull
+arguments and the number of arguments to change.
+For example, for \prog{groepeer}, the class of the second type error is ``Merge''
+and the values of \FuncDiff\ are 2 and 2, respectively, indicating that starting from the
+second argument two arguments should be removed.
+Therefore, we suggest adding parentheses over three arguments to fix the type error.
+%is achieved by adding parentheses over three arguments.
+
+If the class is ``Delete Brackets''
+or ``Add Brackets'', then we generate three suggestions.
+We generate more messages for dealing with bracket
+differences because there are numerous possibilities for
+fixing such errors while the fixing for parentheses
+errors is quite certain. In this case,
+the indices of the first two elements of
+\BracketDiff\ are used to generate suggestions. We suggest
+to change the expression specified by the first index, the
+first identifier of the error cause, and the
+parent node of the error cause. Of course, we may tune
+these rules to achieve better precision, but we wanted
+to keep change suggestions simple, given a classification result.
+
+Sometimes the rule may fail to generate a suggestion with
+the given nonstructural error class. 
+The reason is either the
+classification result is wrong, 
+or the \FuncDiff\ / \BracketDiff\ is empty. 
+One example is that
+the predicted class is ``Pull''
+but we don't have any expressions
+nested in parentheses. 
+In such cases, 
+we follow the suggestions from Helium.
 
 \section{Evaluation}
-\label{sec:solution:eval}
+\label{sec:ml:eval}
+
 
 
 \chapter{Conclusion and Future Work}
@@ -3749,7 +4535,41 @@ to predict nonstructural errors effectively.
 % If you have only one appendix, use the command \appendix instead
 % of \appendices.
 %
-%\appendices
+\appendix
+
+\section{Kinds of Helium Message}
+\label{sec:msgkind}
+
+In Section~\ref{sec:features:feature},
+we consider the kind of error messages generated from Helium as a feature to represent type errors.
+In this section, I present the message kinds and the corresponding feature values in Figure~\ref{fig:heliummsg}.
+
+\begin{figure}
+\centering
+\begin{tabular}{l | c }
+\toprule
+%ID &  Message information contained in the category \\
+String contained in the message & Value \\
+\midrule
+Type error in application. & 1\\
+Type error in constructor. & 2\\
+Type error in infix application. & 3 \\
+Type error in literal.  & 4\\
+Type error in right-hand side. & 5 \\
+Type error in [variable | enumeration | element of list]. & 6 \\
+Type error in guard. & 7 \\
+Type error in guarded expression. & 8 \\
+Type signature is too general. & 9 \\
+Don't know which instance to choose for [Eq | Num]. & 10 \\
+Type error in [negation | overaloaded function]. & 11 \\
+Type error in [explicitly typed binding | infix pattern application]. & 12 \\
+%Type error in [explicitly typed binding | infix pattern application | pattern of function binding]. & 12 \\
+Other. & 13 \\
+\bottomrule
+\end{tabular}
+\caption{Values for feature 1.}
+\label{fig:heliummsg}
+\end{figure}
 
 %\include{chapter-appendix1}
 %\include{chapter-appendix2}
