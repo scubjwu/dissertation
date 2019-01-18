@@ -5018,10 +5018,212 @@ a type error debugger intended to work on large applications.
 \chapter{Conclusion and Future Work}
 \label{sec:conclusion}
 
-
+Besides the work presented in this dissertation, 
+I have also explored other applications of machine learning in the programming language area.
+I briefly present these applications in Section~\ref{sec:conclusion:other}.
+Section~\ref{sec:conclusion:close} summarizes the main contributions
+of this work and discusses the directions for future work.
 
 \section{Other Applications}
 \label{sec:conclusion:other}
+
+Machine learning techniques have been applied to solve various problems in the programming language area.
+I will briefly discuss two of those,
+specification mining (Section~\ref{sec:other1}),
+and code representation (Section~\ref{sec:other2}).
+
+\subsection{Specification Mining}
+\label{sec:other1}
+
+Specification is a broad concept in programming languages and software engineering,
+including API usage~\cite{zhong2009mapo,nguyen2014statistical,buse2012synthesizing}, 
+error values returned by functions~\cite{marinescu2011efficient,Kang:2016:AAI:2970276.2970354,Acharya:2009:MAE}, etc.
+Mining specifications is thus useful for program analysis,
+such as bug detection~\cite{jana2016automatically} and code completion~\cite{hou2010towards}.
+%
+In this subsection, I will focus on the discussion about mining error specifications.
+
+Error handling bugs are prevalent in libraries, system software, and
+applications, and they often yield severe consequences, such as
+security vulnerabilities~\cite{OWASP2007}.
+%
+Many methods have been developed to detect
+error handling bugs. 
+%
+For example, \cite{Rubio-Gonzalez:2009:EPA:1542476.1542506} leverage weighted pushdown systems to analyze error propagation in file systems
+for finding such bugs.
+A set of dynamic analysis approaches, based on error injection, have also been developed 
+to test if the binary code handles
+failures correctly~\cite{marinescu2011efficient,susskraut2006automatically,gunawi2008eio}.
+%
+Each of these approaches~\cite{jana2016automatically,Rubio-Gonzalez:2009:EPA:1542476.1542506,gunawi2008eio} 
+has detected hundreds of error handling bugs in their respective study subjects.
+
+An important kind of information those methods rely on is
+error specifications (which specify the value range each function
+returns to indicate errors).
+%
+For example, in EPEx~\cite{jana2016automatically} and
+ErrDoc~\cite{Tian:2017:ADR}, 
+the error specifications are used to
+determine whether each path denotes error handling or not.
+%
+In error injecting tools~\cite{marinescu2011efficient}, the error specifications help choose proper errors to inject 
+since injecting unrealistic errors will raise false alarms about 
+error handling bugs.
+%
+Error specifications are useful in many other application scenarios~\cite{myers2016improving,weimer2005mining,rubio2010expect,cheon2007automated},
+for example for 
+verifying the consistency between API documentations and system implementations.
+%
+Automatically generating precise error specifications 
+is non-trivial in practice, for several reasons.
+%
+First, 
+while some conventions, such as
+NULL pointers and negative values, are used in projects to denote errors,
+they do not always hold.
+This is because error values indicating failure are function-specific and 
+may overlap with non-error values from other functions within
+the same project. 
+%within in the same project.
+For example, in zlib, the function
+\prog{gzgets()} uses a
+\prog{NULL} to denote that reading a compressed file fails
+whereas \prog{gzerror()}
+returns a \prog{NULL} to indicate a compressed file stream is correct.
+%
+According to \cite{Kang:2016:AAI:2970276.2970354}, 
+the precision
+of error specifications collected following such 
+conventions is only about 50\%. 
+%
+Second, in addition to such conventions, 
+projects usually introduce their own idioms for representing errors.
+%
+For example, while OpenSSL uses \prog{SSL\_R\_UNSUPPORTED\_OPTION} to indicate errors,
+Linux never uses this name.
+As a result, identifying errors by pattern matching over a set of idioms does not work across projects.
+
+Several approaches have been developed to 
+help generate error specifications~\cite{marinescu2011efficient,Kang:2016:AAI:2970276.2970354,Acharya:2009:MAE}. 
+%
+However, while they work well under certain conditions, they 
+are generally limited in two aspects. 
+%
+First, they have a limited applicability. For example, 
+LFI~\cite{marinescu2011efficient} gets error specifications for only exported library functions,
+through a certain register
+where all application binary interfaces (ABIs) place their return values.
+%
+As another example, 
+APEx~\cite{Kang:2016:AAI:2970276.2970354} extracts
+error specifications for APIs that are frequently used by other projects only. 
+%
+To make the generated error specification precise,
+in general, APEx needs to collect information from more than 100 call sites for each API.
+%
+This limitation prevents us from inferring error specifications for internal functions in libraries 
+like OpenSSL and system software like Linux.
+
+Second, current approaches have a limited accuracy
+of generated error specifications. 
+While LFI assumes only constant values indicate error situations, 
+constant values can indicate non-error situations and 
+non-constant values can indicate error situations. 
+In general, as noted by \cite{Kang:2016:AAI:2970276.2970354}, this approach
+yields quite poor precision across different libraries. 
+%
+The error specification accuracy of APEx is dramatically affected
+by the number of call sites using APIs for which error specifications are to be
+collected. 
+The overall precision and recall of APEx are 77\% and 47\%, respectively.
+
+These limitations restrict the applicability of error handling bug detection approaches,
+and thus a general approach for generating precise error specifications is still missing.
+%
+We have explored the idea of using machine learning to generate error specifications
+by analyzing only the source code.
+%
+The key observation in our solution is that we can distinguish \textit{error paths}
+(path executions ended in error situations, for example, 
+fail to open files, obtain resources, allocate memory, etc.)
+from \textit{non-error paths}
+(paths represent normal program executions)
+through a set of features, such as path lengths
+(the distances between the exit points and the corresponding entry points),
+categories of return expressions (such as constants, variables, macros, etc.),
+and the number of if-statements involved along the path.
+%
+Such features are related to the semantics of programs, 
+and are thus useful to identify error paths.
+For example, since error values in C are often returned by using ``goto'' statements~\cite{Nagappan:2015:ESG:2786805.2786834},
+error paths are likely to have fewer number of function calls and/or branching points than non-error paths.
+
+Based on these path features, the straightforward way to identify error paths is
+to employ some heuristics.
+In APEx~\cite{Kang:2016:AAI:2970276.2970354},
+the paths with fewer branching points and program statements than average are identified as error paths.
+However, the accuracy of error path identification in such heuristic approaches is low. For example, 
+the accuracy of APEx is only about 77\%.
+The main reason is that the number of features leveraged by the heuristic in APEx is too small.
+To improve the accuracy, one can design a more complicated heuristic considering more features.
+Ideally, a heuristic that appropriately, consistently, and coherently 
+makes full use of all possible features could 
+identify error paths with very high accuracy.
+On the other hand, manually designing such heuristic is not feasible in practice 
+when too many features are involved. 
+Moreover, the identified error paths based on heuristics lack statistical guarantees, 
+which means that the proposed heuristic may not be generalized across different projects.
+For example, APEx achieves 94\% accuracy for GTK+ while only 23\% accuracy for zlib.
+
+To address these issues, we propose to exploit machine learning to learn the relationship between the features and error paths.
+Specifically, we systematically extract features from the structure of program source code,
+classify all paths into error and non-error paths,
+and collects the return values from error paths as error specifications.
+%
+Figure~\ref{fig:workflow} shows the workflow of our solution, named \newTool.
+In the first phase, based on universal features that can be applied across different projects,
+we adapt an unsupervised learning algorithm to 
+automatically label a set of the most likely error and non-error paths.
+These labeled paths are in turn used as the training data for a supervised learning algorithm
+in the second phase,
+where a classifier is trained based on project-specific features, 
+which can better characterize paths in individual projects,
+to classify the unlabeled paths left from the first phase.
+%
+By doing this, \newTool\ requires one-time minimal path labeling,
+which is different from traditional machine learning methods that
+need considerable manual efforts for labeling data,
+and thus the burden of users for using our tool to infer error specifications in practice is reduced.
+
+\begin{figure}
+\includegraphics[width=0.95\textwidth]{images/errspec_arch.pdf}
+\caption{The workflow of \newTool.
+\newTool\ first labels the most likely error and non-error paths in source code;
+then the paths not labeled in core-model learning is classified into error and non-error classes.
+\newTool\ generates error specifications based on the error path prediction.
+ }
+\label{fig:workflow}
+\end{figure}
+
+We have prototyped \newTool\ and 
+evaluated it on 
+10 real-world projects, including Linux, OpenSSL, 
+and zlib. We investigated the result for about 
+8,500 paths in 1,714 functions. 
+The results show that
+\newTool\ successfully finds error paths with an accuracy of 92.1\%
+and generates correct error specifications for 93\% of all functions,
+significantly higher than those of state-of-the-art approaches.
+%
+To further demonstrate the usefulness of the generated error specifications,
+we used them to detect 57 bugs in 5 tested projects.
+
+\subsection{Code Representation}
+\label{sec:other2}
+
+
 
 \section{Main Contributions and Future Directions}
 \label{sec:conclusion:close}
