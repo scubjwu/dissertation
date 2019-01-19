@@ -219,7 +219,7 @@ Doctor of Philosophy, University of Louisiana at Lafayette, \thegraduationmonth 
 	[Sheng Chen]
 	[Arun Lakhotia]
 	[Anthony Maida]
-	{Mohsen Amini}
+	{Miao Jin}
 	
 \committeememberstitle
 	[Professor of CACS]
@@ -5223,6 +5223,71 @@ we used them to detect 57 bugs in 5 tested projects.
 \subsection{Code Representation}
 \label{sec:other2}
 
+In Chapter~\ref{sec:features}, we manually predefine the features extracted by \newCompiler,
+which requires the domain knowledge.
+In addition, some features such as feature 1 and 2 are complier dependent,
+reducing the applicability of \newCompiler.
+%
+To address these issues,
+we can incorporate the idea of feature learning~\cite{bengio2013representation,Chae:2017:AGF:3152284.3133925}
+to automatically decide the kinds of extracted features.
+%
+In other words, given the source code and the corresponding types,
+we want to automatically embed these information into a feature vector which is essentially an abstract code representation.
+%
+The rationale behind this is that, as noted by \cite{allamanis2018survey},
+coding is a form of human communication;
+large code corpora have similar statistical properties to natural language corpora;
+and these properties can be exploited to build better software tools.
+%
+The better learned feature embedding is, the more powerful the learning model is to make predictions.
+
+
+The most straightforward way to generate the code representation of an ill-type program is based on the types.
+For example, given the program AST, we can have all the related types contributing to the type error~\cite{Zhang15:DTE},
+and then use a vector to includes these types.
+%
+However, such feature embedding does not work in practice for two reasons.
+First, the size of code representation varies from different programs.
+Consider the following two ill-typed programs \prog{A} and \prog{B}.
+%
+\begin{program}
+A :: String -> Int -> String
+A s i = replicate (i - (length s)) " "
+\end{program}
+%
+\begin{program}
+B :: [String] -> Int
+B x = maximum (map (length x))
+\end{program}
+%
+The types related to the error in \prog{A} and \prog{B} are
+\prog{\{Int -> a - > [a], Int, a -> a -> a, a -> Int, String, String\}}
+and \prog{\{a -> a, (a -> b) -> [a] -> [b], a -> Int, [String]\}}, respectively.
+%
+It is easy to find that the representation size of \prog{A} is different from that of \prog{B},
+which all machine learning algorithms require the length of feature vector should be the same.
+%
+Second, such representations do not maintain the structure of program AST,
+making two different programs may have the same feature vector.
+For example, program \prog{B} has the same code representation with \prog{maximum map (length x)}.
+
+We could cast the problem of generating code representation as a graph learning problem.
+Given ill-typed programs, the learning model should be able to learn from different size of feature vectors as well as the code structures.
+%
+We can represent the program AST with types as an attribute graph
+$G = (V, E, \it{Att}, \tau)$,
+where $V = \{v_1, v_2, ... , v_n\}$ is a finite set of vertices,
+$E \subseteq V \times V$ denotes a finite set of edges,
+and $\tau : V \to \it{Att}$ is a function from the vertex set $V$ to the attribute set $\it{Att = {a_1, a_2, ... , a_n}}$.
+An attribute $a_i$ is the type of the element in the ill-typed program.
+The graph $G$ can be described by its attribute and adjacency matrix. 
+The attribute maxtix $\alpha$ is defined by $\alpha_{ij} = 1$ if $a_i  = \tau(v_j)$, otherwise 0.
+The adjacency matrix $\beta$ is defined by $\beta_{ij} = 1$ if $(v_i, v_j) \in E$, otherwise 0.
+Based on $G$, existing graph classification algorithms
+\cite{nikolentzos2017matching,johansson2015learning,dai2016discriminative,niepert2016learning,mousavi2017hierarchical,guo2017combining}
+are able to compute the graph level similarity, which enables us to map an ill-typed program to a certain kind of nonstructural error given in Section~\ref{sec:ml:prep}.
+
 
 
 \section{Main Contributions and Future Directions}
@@ -5288,7 +5353,7 @@ Other. & 13 \\
 
 % Here the bibliography is inserted.
 % Replace "example" with the name of your ".bib" file
-\bibliography{error-reporting,me,paper,pldi}                      
+\bibliography{error-reporting,me,paper,pldi,ml}                      
 \index{Bibliography@\emph{Bibliography}}
 %
 
