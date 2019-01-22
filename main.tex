@@ -489,15 +489,26 @@ Chapter~\ref{sec:review} (\emph{Literature Review}) collects research related to
 type error debuggers and machine learning on programming languages.
 This chapter contains material from \cite{wu2017type} and \cite{wu2017learning}.
 
-Chapter~\ref{sec:background} (\emph{Background}) systematically explains under what conditions existing error debuggers work well
-based on general ideas underlying many debuggers.
-The result in this chapter is applicable to future debuggers that share the similar underlying ideas.
-This chapter contains material from \cite{wu2017type}.
+Chapter~\ref{sec:background} (\emph{Understanding Type Error Debugging}) systematically explains when existing error debuggers work well.
+%
+In addition, we study the process of real fixing type errors based on the collected student ill-typed programs.
+This chapter contains material from \cite{wu2017type} and makes the following contributions.
 
-Chapter~\ref{sec:subjects} (\emph{Study Subjects and Methodology}) presents the study subjects used in this work and
-discuss the methodology used to study the process of fixing type errors based on the study subjects.
-Five meaningful metrics are proposed to represent the real error debugging.
-This chapter contains material from \cite{wu2017type}.
+\begin{enumerate}
+\item We give a fundamental understanding about the conditions for existing error debuggers to work well.
+Our discussion is based on general ideas underlying many debuggers.
+Thus, the findings are applicable to future debuggers sharing similar underlying ideas.
+
+\item Five meaningful metrics are proposed to represent the error debugging process.
+\end{enumerate}
+
+%The result in this chapter is applicable to future debuggers that share the similar underlying ideas.
+%This chapter contains material from \cite{wu2017type}.
+
+%Chapter~\ref{sec:subjects} (\emph{Study Subjects and Methodology}) presents the study subjects used in this work and
+%discuss the methodology used to study the process of fixing type errors based on the study subjects.
+%Five meaningful metrics are proposed to represent the real error debugging.
+%This chapter contains material from \cite{wu2017type}.
 
 Chapter~\ref{sec:analysis} (\emph{Debugging Behavior Analysis}) shows the statistical results by analyzing the study subjects.
 Many interesting observations that inform future research directions are derived.
@@ -518,8 +529,9 @@ The results indicate that function composition related operations (\prog{(.)}, \
 point-free style function definitions, wrong type annotations, and wrong pattern matching often lead type error debugging to be challenging.
 \end{enumerate}
 
-Chapter~\ref{sec:features} (\emph{Nonstructural Type Error Representation}) presents the information extracted from error messages and program ASTs 
-to represent nonstructural errors which are common in practice as shown in Chapter~\ref{sec:analysis}, but yet are handled poorly by existing debuggers.
+Chapter~\ref{sec:features} (\emph{Representing Type Errors}) presents the information extracted from error messages and program ASTs 
+to represent type error. 
+%which are common in practice as shown in Chapter~\ref{sec:analysis}, but yet are handled poorly by existing debuggers.
 Three kinds of information are considered: (1) the type conflicts, (2) the program structure around the error location,
 and (3) the error messages from the underlying debugger.
 This chapter contains material from \cite{wu2017learning} and makes the following contributions.
@@ -529,13 +541,14 @@ This chapter contains material from \cite{wu2017learning} and makes the followin
 As error debuggers always use, among others, the heuristic of type difference of conflicting types to rank multiple error locations~\cite{Chen14:CFT,Hage07:HTE},
 the proposed algorithm could be employed to develop more powerful error ranking heuristics.
 
-\item In total 14 features are extracted to effectively represent nonstructural errors.
+\item In total 14 features are extracted to effectively represent type errors.
 They provide a principled way to correlate type errors with program structures by covering a wide array of useful error information.
 \end{enumerate}
 
 Chapter~\ref{sec:solution} (\emph{Learning Nonstructural Errors}) provides the proposed debugger \newCompiler\ 
-to generating user friendly error messages for nonstructural errors.
-This capter contains material from \cite{wu2017learning} and makes the following contributions.
+to generating user friendly error messages for nonstructural errors,
+which are common in practice as shown in Chapter~\ref{sec:analysis}, but yet are handled poorly by existing debuggers.
+This chapter contains material from \cite{wu2017learning} and makes the following contributions.
 
 \begin{enumerate}
 \item The motivation for using machine learning in developing an effective debugger for nonstructural errors is justified.
@@ -838,13 +851,22 @@ to determine why the input program can't run.
 
 
 
-\chapter{Background}
+\chapter{Understanding Type Error Debugging}
 \label{sec:background}
 
-This chapter investigates two conditions for existing error debuggers to work well:
+In this chapter, I give a fundamental understanding about the conditions for existing error debuggers to work well in Section~\ref{sec:backgroud:challenge}.
+The discussion is based on general ideas underlying many debuggers, rather than the behaviors of individual debuggers.
+Thus, the result is applicable to future debuggers that share similar underlying ideas.
+%
+In Section~\ref{sec:subjects}, I describe the methodology for investigating the real error fixing process based on the collected students' ill-type programs.
+
+\section{When Do Error Debuggers Work Well?}
+\label{sec:backgroud:challenge}
+
+In this section, I discuss two conditions for existing error debuggers to work well:
 when type errors are caused by single leaves and when type annotations are correct.
 
-\section{When Errors Are Due to Single Leaves}
+\subsection{When Errors Are Due to Single Leaves}
 \label{sec:background:leaves}
 
 Instead of investigating existing debuggers individually,
@@ -852,7 +874,7 @@ I first identify common approaches shared by them and then investigate all appro
 The most two common approaches are
 \emph{search-based} and \emph{constraint-based}.
 
-\subsection{Search-based error debugging}
+\subsubsection{Search-based error debugging}
 \label{sec:background:leaves:search}
 
 The search-based approach was first proposed in~\cite{Bernstein95:DTE}.
@@ -981,7 +1003,7 @@ variational typing~\cite{CEW12icfp,CEW14toplas} to reuse
 typing information. It could find all error causes in leaves
 but couldn't find non-leaf causes.
 
-\subsection{Constraint-based error debugging}
+\subsubsection{Constraint-based error debugging}
 \label{sec:background:leaves:constraint}
 
 As type inference is usually done in two phases, constraint
@@ -1119,15 +1141,17 @@ message will lead to more type errors in the program.
 Thus, error debuggers work well when type annotations
 are correct.
 
-\chapter{Study Subjects and Methodology}
+\section{Study Subjects and Methodology}
 \label{sec:subjects}
 
-In this chapter, I first describe the study subjects used in this work in Section~\ref{sec:subjects:db}.
+
+This section provides the study subjects and the methodology used to study the process of fixing type errors.
+I first describe the study subjects used in this work in Section~\ref{sec:subjects:db}.
 Section~\ref{sec:subject:ref} discusses how the correct programs for ill-typed programs are determined.
 At last, the information recorded to represent the real error debugging is presented in Section~\ref{sec:subject:metric}.
 
 
-\section{Analyzed Datasets}
+\subsection{Analyzed Datasets}
 \label{sec:subjects:db}
 
 A main challenge in this study is choosing appropriate data sets
@@ -1259,7 +1283,7 @@ Moreover, by considering all the ill-typed programs over a period of several wee
 we are able to study how the error fixing process evolved as students became more
 familiar with the programming language.
 
-\section{Finding the Reference Program}
+\subsection{Finding the Reference Program}
 \label{sec:subject:ref}
 
 It is essential in our analysis procedure to choose,
@@ -1533,7 +1557,7 @@ the changes made, with respect to the error, between the original program
 and the reference. We show more details about how the changes are measured
 for each type error in the next subsection.
 
-\section{Analysis Metrics}
+\subsection{Analysis Metrics}
 \label{sec:subject:metric}
 
 We constructed two records,
@@ -2874,7 +2898,7 @@ the whole program sequences to fully understand
 users' intention and then analyze each program.
 This helped to choose correct reference programs.
 
-\chapter{Nonstructural Type Error Representation}
+\chapter{Representing Type Errors -- \newCompiler\ I}
 \label{sec:features}
 
 We have reviewed the behaviors of many error debuggers in Chapter~\ref{sec:background},
@@ -3757,7 +3781,7 @@ excess dimensions to the feature vector.
 This enables us to apply machine learning
 to predict nonstructural errors effectively.
 
-\chapter{Learning Nonstructural Errors -- \newCompiler}
+\chapter{Learning Nonstructural Errors -- \newCompiler\ II}
 \label{sec:solution}
 
 Machine learning can often deliver accurate solutions to problems
