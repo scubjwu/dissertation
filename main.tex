@@ -167,7 +167,7 @@
 % Your proper name for alphabetizing. (Used in the abstract.)
 % Last, First Middle Suffix
 
-\title{Towards User Friendly Error Debugging}
+\title{Using Machine Learning to Improve Type Error Debugging}
 % The title of your thesis/dissertation. Use a tilde (~) for any
 %   spaces that should not be broken at line breaks.
 
@@ -477,7 +477,7 @@ The empirical study results show that the type errors, arising from errors in gr
 usually take more than 10 steps to fix and occur quite frequently in practice.
 This class of errors is called as nontructural errors,
 and existing error debuggers fail to generate precise and informative error messages for such errors.
-In this dissertation, I will present a solution that delivers high quality error messages to fix nonstructural errors.
+In this dissertation, I will present a machine learning-based solution that delivers high quality error messages to fix nonstructural errors.
 
 
 \section{Contributions and Outline of This Dissertation}
@@ -1040,7 +1040,7 @@ maybe terminated once constraint solving fails.
 \begin{figure}
 \centering
 \includegraphics[width=0.85\columnwidth]{images/nonstruc.pdf}
-\caption{The ASTs and constraints for \prog{not . even x} (left)
+\caption[Illustration of non-leaf type error.]{The ASTs and constraints for \prog{not . even x} (left)
 and \prog{(not . even) x} (right).
 \ensuremath{@}s denote function applications.
 The parameter \prog{x} has the type $\tvf$.
@@ -2273,7 +2273,7 @@ affect error debugging in practice.
 \begin{figure}
 \centering
 \includegraphics[width=0.85\columnwidth]{images/step_test.eps}
-\caption{Error situation against fixing steps. The first digit
+\caption[Error situation against fixing steps]{Error situation against fixing steps. The first digit
 of each error situation denotes whether the message locates
 the real error cause correctly (``1'') or not (``0''), the
 second digit denotes whether following the message will bring
@@ -2345,7 +2345,7 @@ error messages are more concrete.
 \begin{figure}
 \centering
 \includegraphics[width=0.85\columnwidth]{images/size_test.eps}
-\caption{Error situation against size differences. The coding
+\caption[Error situation against size differences]{Error situation against size differences. The coding
 scheme of error situations is the same as that 
 in Figure~\ref{fig:errsitu1}.}
 \label{fig:errsitu2}
@@ -2443,7 +2443,7 @@ more appropriately.
 \begin{figure}
 \centering
 \includegraphics[width=0.85\columnwidth]{images/step_diffr.eps}
-\caption{Difficulty reason against fixing steps.
+\caption[Difficulty reason against fixing steps]{Difficulty reason against fixing steps.
 The figure considers all type errors that have the corresponding
 difficulty reason, including those that
 were fixed within 5 steps.
@@ -2721,7 +2721,7 @@ a statistical analysis.
 \begin{figure}
 \centering
 \includegraphics[width=0.85\columnwidth]{images/diffr.eps}
-\caption{Distribution of difficulty reasons. The figure considers
+\caption[Distribution of difficulty reasons]{Distribution of difficulty reasons. The figure considers
 all type errors that are fixed with more than 5 steps. The labels on 
 the x-axis have the same meanings as those in Figure~\ref{fig:diffr2}.
 }
@@ -3352,7 +3352,7 @@ Feature ID &  Summary   &  Feature Values  \\
 14 & Presence of the \prog{\$} operator in the ill-typed expression. & Nominal (0, 1) \\ 
 \bottomrule
 \end{tabular}
-\caption{An overview of the feature vector. A feature whose
+\caption[An overview of the feature vector]{An overview of the feature vector. A feature whose
 value is ``Nominal'' can take any value specified in the
 corresponding range, and a feature whose value is
 ``\IntVal'' can take any value satisfying the 
@@ -3807,7 +3807,7 @@ can be generated.
 \begin{figure}
 \centering
 \includegraphics[scale=.6]{images/Learnskell.pdf}
-\caption{The overview of \newCompiler. The circles denote the input
+\caption[The overview of \newCompiler]{The overview of \newCompiler. The circles denote the input
 and output of the system. 
 %Unfilled shapes and
 %filled shapes denote the training and prediction
@@ -4386,7 +4386,7 @@ when dealing with the minority classes like ``Pull''.
     Structural & 0.847 & 0.895 & 0.883 & 0.868 & 0.850 & 0.851 & 0.856 & 0.871 & 0.866 \\
 \bottomrule
   \end{tabular}
-    \caption{A comparison of oversampling techniques. 
+    \caption[A comparison of oversampling techniques]{A comparison of oversampling techniques. 
     We use the short names SMO and SMO-CV for SMOTE and SMOTE-CV, respectively.}
     \label{fig:cse}
 \end{figure}
@@ -5012,7 +5012,7 @@ LOC & Extraction & Sugg. & Helium &  Extraction & Sugg. & Helium &  Extraction &
     1,000 & 0.006 & 0.008 & 4.732 & 0.013 & 0.016 & 5.427 & 0.026 & 0.033 & 8.542\\ 
 \bottomrule
 \end{tabular}
-\caption{Running time of \newCompiler\ in seconds. 
+\caption[Running time of \newCompiler]{Running time of \newCompiler\ in seconds. 
 Each time is an average
 of 10 runs. Times are measured on
 %
@@ -5254,7 +5254,7 @@ and thus the burden of users for using our tool to infer error specifications in
 
 \begin{figure}
 \includegraphics[width=0.95\textwidth]{images/errspec_arch.pdf}
-\caption{The workflow of \newTool.
+\caption[The workflow of \newTool]{The workflow of \newTool.
 \newTool\ first labels the most likely error and non-error paths in source code;
 then the paths not labeled in core-model learning is classified into error and non-error classes.
 \newTool\ generates error specifications based on the error path prediction.
