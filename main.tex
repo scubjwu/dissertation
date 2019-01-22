@@ -303,7 +303,7 @@ which in turn helps me establish a positive attitude towards research.
 Over the past three years, his guidance and support shaped my way of thinking and solving problems,
 and improved my presentation and technical writing skills.
 %
-He is a such reliable person that I can always discuss any questions with him 
+He is such a reliable person that I can always discuss any questions with him 
 by stopping by his office during the daytime or sending emails in the middle of the night.
 It has been fun to work with him.
 %
@@ -329,7 +329,7 @@ Dr.Lin, who was the advisor of my master study, is a great mentor, leading me in
 Their helps are the cornerstone of my success in completing this dissertation.
 
 During my study at CACS, I met a lot of friends. I want to thank my labmate John Peter.
-We worked closely on the programming language area and had many insightful discussion about research as well as life.
+We worked closely on the programming language area and had many insightful discussions about research as well as life.
 Thank you to him for explaining what type system is in plain words.
 I enjoyed the time that we worked overnight before paper submission deadline.
 %
@@ -4165,7 +4165,7 @@ has the same effect of adding or removing
 parentheses, 
 %and thus involves nonstructural changes, %hence
 we created a label to represent such nonstructural error space $\X^{ns}_{s}$.
-In Section~\ref{sec:impl},
+In Section~\ref{sec:ml:impl},
 we discuss how our suggestion
 generation algorithm determines the number of brackets needs to be changed
 or the number of identifiers needs to be pulled/merged.
@@ -5316,12 +5316,12 @@ B :: [String] -> Int
 B x = maximum (map (length x))
 \end{program}
 %
-The types related to the error in \prog{A} and \prog{B} are
+The types related to the errors in \prog{A} and \prog{B} are
 \prog{\{Int -> a - > [a], Int, a -> a -> a, a -> Int, String, String\}}
 and \prog{\{a -> a, (a -> b) -> [a] -> [b], a -> Int, [String]\}}, respectively.
 %
 It is easy to find that the representation size of \prog{A} is different from that of \prog{B},
-which all machine learning algorithms require the length of feature vector should be the same.
+while all machine learning algorithms require the length of feature vector should be the same.
 %
 Second, such representations do not maintain the structure of program AST,
 making two different programs may have the same feature vector.
