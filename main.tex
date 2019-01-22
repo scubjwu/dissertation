@@ -571,8 +571,13 @@ This chapter contains material from \cite{wu2017learning} and makes the followin
 \item The evaluation results of the proposed solution are given, demonstrating that the machine learning-based error debugger is effective and scalable.
 \end{enumerate}
 
-Chapter~\ref{sec:conclusion} (\emph{Conclusion}) closes this dissertation with a summary of other applications of using machine learning in programming area,
-the most important contributions of this work, and directions for future research.
+Chapter~\ref{sec:todo} (\emph{Remaining Tasks and Time to Complete}) presents the challenges in the line of applying machine learning to help bug detection,
+details the tasks to address these challenges, and provides the estimated time to complete each taks.
+
+Chapter~\ref{sec:conclusion} (\emph{Conclusion}) closes this dissertation with a summary of the most important contributions of this work.
+
+%Chapter~\ref{sec:conclusion} (\emph{Conclusion}) closes this dissertation with a summary of other applications of using machine learning in programming area,
+%the most important contributions of this work, and directions for future research.
 
 \chapter{Literature Review}
 \label{sec:review}
@@ -5107,6 +5112,110 @@ As a result, the approach used by \newCompiler\
 is scalable, making it a practical design for
 a type error debugger intended to work on large applications.
 
+\chapter{Remaining Tasks and Time to Complete}
+\label{sec:todo}
+
+
+Besides debugging type errors, there are many other research directions in error debugging.
+%
+Error handling bugs are prevalent in libraries, system software, and
+applications, and they often yield severe consequences, such as
+security vulnerabilities~\cite{OWASP2007}.
+%
+Many methods have been developed to detect
+error handling bugs. 
+%
+For example, \cite{Rubio-Gonzalez:2009:EPA:1542476.1542506} leverage weighted pushdown systems to analyze error propagation in file systems
+for finding such bugs.
+A set of dynamic analysis approaches, based on error injection, have also been developed 
+to test if the binary code handles
+failures correctly~\cite{marinescu2011efficient,susskraut2006automatically,gunawi2008eio}.
+%
+Each of these approaches~\cite{jana2016automatically,Rubio-Gonzalez:2009:EPA:1542476.1542506,gunawi2008eio} 
+has detected hundreds of error handling bugs in their respective study subjects.
+
+An important kind of information those methods rely on is
+error specifications (which specify the value range each function
+returns to indicate errors).
+%
+Automatically generating precise error specifications 
+is non-trivial in practice, for several reasons.
+%
+First, 
+while some conventions, such as
+NULL pointers and negative values, are used in projects to denote errors,
+they do not always hold.
+This is because error values indicating failure are function-specific and 
+may overlap with non-error values from other functions within
+the same project. 
+%within in the same project.
+For example, in zlib, the function
+\prog{gzgets()} uses a
+\prog{NULL} to denote that reading a compressed file fails
+whereas \prog{gzerror()}
+returns a \prog{NULL} to indicate a compressed file stream is correct.
+%
+According to \cite{Kang:2016:AAI:2970276.2970354}, 
+the precision
+of error specifications collected following such 
+conventions is only about 50\%. 
+%
+Second, in addition to such conventions, 
+projects usually introduce their own idioms for representing errors.
+%
+For example, while OpenSSL uses \prog{SSL\_R\_UNSUPPORTED\_OPTION} to indicate errors,
+Linux never uses this name.
+As a result, identifying errors by pattern matching over a set of idioms does not work across projects.
+
+To generate precise error specifications based on source code,
+one straightforward way is to identify \textit{error paths}
+(path executions ended in error situations, for example, 
+fail to open files, obtain resources, allocate memory, etc.),
+and then collect the return values from error paths to construct error specifications.
+%
+The key observation is that we can distinguish error paths
+from \textit{non-error paths}
+(paths represent normal program executions)
+through a set of features, such as path lengths
+(the distances between the exit points and the corresponding entry points),
+categories of return expressions (such as constants, variables, macros, etc.),
+and the number of if-statements involved along the path.
+%
+Such features are related to the semantics of programs, 
+and are thus useful to identify error paths.
+For example, since error values in C are often returned by using ``goto'' statements~\cite{Nagappan:2015:ESG:2786805.2786834},
+error paths are likely to have fewer number of function calls and/or branching points than non-error paths.
+%
+Machine learning techniques can help learn the relationship between such features and error paths.
+Therefore, we propose to use machine learning to help generate error specifications.
+To this end, the following tasks have to be completed.
+
+\begin{enumerate}
+
+\item Design a set of features for identifying error paths.
+The idea is to manually investigate the differences between error paths and non-error paths from different code bases,
+so that we can find the features characterizing error paths.
+The estimated time to complete this task is 1 to 2 weeks.
+
+\item In Chapter~\ref{sec:solution}, we manually label type errors to train a model for \newCompiler.
+This requires considerable efforts.
+To minimize the data labeling efforts, 
+I plan to design a new machine learning paradigm which can automatically label error paths for training a model.
+The estimated time to complete this task is 4 to 5 weeks.
+
+\item Evaluate the effectiveness of our solution.
+I will compare the error specification accuracy between ours and those generated by the state-of-the-art approach APEx~\cite{Kang:2016:AAI:2970276.2970354}.
+Furthermore, I will use the generated error specifications to detect error handling bugs in real-world projects.
+The estimated time to complete this task is 2 to 3 weeks.
+
+\end{enumerate}
+
+
+\chapter{Conclusion}
+\label{sec:conclusion}
+
+
+\iffalse
 \chapter{Conclusion and Future Work}
 \label{sec:conclusion}
 
@@ -5269,7 +5378,7 @@ Moreover, the identified error paths based on heuristics lack statistical guaran
 which means that the proposed heuristic may not be generalized across different projects.
 For example, APEx achieves 94\% accuracy for GTK+ while only 23\% accuracy for zlib.
 
-To address these issues, we propose to exploit machine learning to learn the relationship between the features and error paths.
+To address these issues, we use machine learning to learn the relationship between the features and error paths.
 Specifically, we systematically extract features from the structure of program source code,
 classify all paths into error and non-error paths,
 and collects the return values from error paths as error specifications.
@@ -5384,6 +5493,7 @@ are able to compute the graph level similarity, which enables us to map an ill-t
 
 \section{Main Contributions and Future Directions}
 \label{sec:conclusion:close}
+\fi
 
 %\include{chapter11}	
 
