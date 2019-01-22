@@ -5214,6 +5214,37 @@ The estimated time to complete this task is 2 to 3 weeks.
 \chapter{Conclusion}
 \label{sec:conclusion}
 
+This dissertation presents my work on type error debugging and 
+the machine learning-based solution to improve error debugging.
+To summarize, this work makes the following contributions.
+
+\begin{enumerate}
+
+\item By manually analyzing 2,757 student ill-typed programs 
+and recording the information about how type errors were fixed, 
+we derive many interesting observations that inform future directions in designing type error debuggers.
+Our results are also beneficial for teachers to better organize course contents in teaching functional programming
+and for students to become more effective in fixing type errors.
+
+\item We give a fundamental understanding about the conditions for existing error debuggers to work well.
+Our discussion is based on general ideas underlying many debuggers, rather than the behaviors of individual debuggers.
+Thus, future debuggers that share similar underlying ideas
+should consider how to effective handle type errors that are caused by wrong use of parentheses or brackets and wrong type annotations.
+
+\item We design a set of features to represent type errors,
+including three kinds of information from:
+(1) the type conflicts, (2) the program structure, and (3) the error message.
+We develop an algorithm to compute the differences between two conflicted types,
+and the algorithm can be further be employed to design more powerful error ranking heuristics.
+
+\item We develop a machine learning-based debugger \newCompiler\ to learn the relation between the proposed features and the kinds of type errors.
+\newCompiler\ could provide informative error messages for nonstructural errors based on the learned relation.
+We evaluate \newCompiler\ by comparing it with other leading error debuggers 
+and show that our approach can locate nonstructural errors accurately and generate concrete fixes for them.
+
+
+\end{enumerate}
+
 
 \iffalse
 \chapter{Conclusion and Future Work}
