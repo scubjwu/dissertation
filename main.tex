@@ -40,6 +40,19 @@
 % The listings packages supports the most commonly used programming
 % languages.
 \usepackage{listings}
+
+
+\usepackage[inline]{enumitem} %control item spacing
+\setenumerate[1]{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=5pt}
+\setitemize[1]{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=5pt}
+\setdescription{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=5pt}
+
+%%\usepackage{etoolbox} %change the space before and after figure
+%%\BeforeBeginEnvironment{figure}{\vskip-10pt}
+%%\AfterEndEnvironment{figure}{\vskip-17pt}
+%%\AfterEndEnvironment{algorithm}{\vskip-20pt}
+%%\BeforeBeginEnvironment{equation}{\vskip-20pt}
+
 \lstloadlanguages{Matlab,C++,C,Pascal}
 \lstset{
          basicstyle=\footnotesize\ttfamily, 
