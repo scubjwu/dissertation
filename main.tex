@@ -752,8 +752,7 @@ error is removed. Once the first removal combination is found, it
 proceeds to consider this case.
 This prevents exponential explosions in complexity
 that might come with considering all removal combinations,
-but can often miss other error fixes. For the  \prog{groepeer}
-example, it misses the error fix over \prog{drop n x}.
+but can often miss other error fixes.
 %
 Second, Seminal doesn't scale well to large programs.
 For each modification of the program structure, Seminal calls
@@ -764,10 +763,6 @@ the compiler becomes time consuming.
 \newCompiler\ doesn't suffer from these problems because
 we can always extract a feature vector for each type error and
 then generate the corresponding error class. 
-For the \prog{groepeer} example,
-\newCompiler\ generates a concrete suggestion of changing \prog{++}
-to something else for the type error reported at the whole right
-hand side of the function.
 
 \cite{McAdam02:RTE} offers another approach to nonstructural errors, namely
 unification modulo linear isomorphism.
@@ -3848,7 +3843,7 @@ can be generated.
 
 \begin{figure}
 \centering
-\includegraphics[scale=.6]{images/Learnskell.pdf}
+\includegraphics[scale=.85]{images/Learnskell.pdf}
 \caption[The overview of \newCompiler]{The overview of \newCompiler. The circles denote the input
 and output of the system. 
 %Unfilled shapes and
