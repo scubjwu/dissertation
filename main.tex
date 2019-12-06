@@ -182,7 +182,7 @@
 % Your proper name for alphabetizing. (Used in the abstract.)
 % Last, First Middle Suffix
 
-\title{Using Machine Learning to Improve Type Error Debugging}
+\title{Using Machine Learning to Improve Programming Error Reporting}
 % The title of your thesis/dissertation. Use a tilde (~) for any
 %   spaces that should not be broken at line breaks.
 
@@ -387,7 +387,8 @@ With the endless help from my family, I was able to complete this dissertation.
 
 \chapter{Introduction}
 
-In this dissertation, I present my research on type error debugging.
+In this dissertation, I present my research on programming error reporting, 
+mainly about improving type error debugging and mining error specifications.
 Understanding type error messages and fixing type errors is challenging for both novice and professional programmers.
 Type errors can be caused for various reasons, for example, 
 using wrong library functions,
@@ -396,13 +397,20 @@ applying functions to arguments of wrong types,
 missing and having extra pairs of parentheses, and so on. 
 In the first part of this dissertation, I present the insights about the type error debugging behaviors in practice, 
 which are exploited to develop an effective error debugger in the later part of this dissertation.
+%
+In the second part of this dissertation, I discuss the importance of error specifications to find error handling errors,
+and then present the solution to automatically generate precise error specifications.
 
-This chapter motivates the needs of user friendly error messages
-by investigating the challenges of debugging type errors.
+This chapter motivates (1) the needs of user friendly error messages
+by investigating the challenges of debugging type errors,
+and (2) the needs of generating precise error specifications for detecting error handling bugs.
 It also outlines the structure of this dissertation and presents the contributions of this work.
 
 
 \section{Motivation}
+
+\parag{Type Error Debugging.}
+%
 Type inference allows programs to be statically typed without
 the presence of full type annotations. Most functional languages,
 such as Haskell, ML, and OCaml support type inference, and many
@@ -449,6 +457,88 @@ not so well when there are multiple type errors.
 
 %Therefore, we manually compute these statistical results and analyze them in our study.
 
+\parag{Error Specification Generation in C.}
+%
+Reliable and secure software should be fail-safe or fail-secure when
+functions fail~\cite{cristian1982exception}.
+When a failure occurs, 
+such as memory allocation failure or permission denial,
+%the failing function 
+the function that detects the failure should 
+return an error
+to its caller, which checks the error to handle the 
+failure gracefully.
+Since the C language lacks exception handling mechanisms~\cite{Goodenough:1975:SEH:512976.512997},
+programmers use certain values that differ from
+the return values of normal executions to check and propagate errors.
+%
+We refer to such sets of ``certain values'' 
+as \emph{error specifications}.
+
+Error specifications are very useful for C analyzers.
+%
+Many static and dynamic analysis methods
+\cite{jana2016automatically,Rubio-Gonzalez:2009:EPA:1542476.1542506,Tian:2017:ADR,
+marinescu2011efficient,susskraut2006automatically,gunawi2008eio}
+employ error specifications
+to detect error handling bugs,
+%since missing or incomplete error handling may not bring any obviously erroneous behaviors (such as crashing executions).
+which are caused by missing or incomplete error handling and 
+are prevalent in real-world software projects~\cite{OWASP2007}.
+%
+Besides detecting error handling bugs, 
+error specifications can be also used in many other application scenarios~\cite{myers2016improving,weimer2005mining,rubio2010expect,cheon2007automated,Dillig:2007:SED:1250734.1250784},
+%beyond detecting error handling bugs, 
+for example for 
+verifying the consistency between API documentations and system implementations.
+
+Several approaches have been developed to 
+help generate error specifications~\cite{marinescu2011efficient,Acharya:2009:MAE,Kang:2016:AAI:2970276.2970354}. 
+%
+However, while they work well under certain conditions, they 
+are generally limited in two aspects. 
+%
+First, they have a limited generalizability. For example, 
+LFI~\cite{marinescu2011efficient} gets error specifications for only exported library functions,
+through a certain register
+where all application binary interfaces (ABIs) place their return values.
+%
+As another example, 
+APEx~\cite{Kang:2016:AAI:2970276.2970354} extracts
+error specifications for APIs that are frequently used by other projects only. 
+%
+To make the generated error specification precise,
+in general, APEx needs to collect information from more than 100 call sites for each API.
+This limitation prevents us from inferring 
+%makes it hard to infer
+error specifications for internal functions in libraries 
+like OpenSSL and system software like Linux.
+
+Second, the current approaches to generating error specifications 
+have a limited accuracy.
+%of generated error specifications. 
+While LFI assumes only constant values indicate error situations, 
+constant values can indicate non-error situations and 
+non-constant values can indicate error situations. 
+In general, as noted by 
+\cite{Kang:2016:AAI:2970276.2970354}, this approach
+yields quite poor precision across different libraries. 
+%
+The accuracy of APEx is dramatically affected
+by the number of call sites using APIs for which error specifications are to be
+collected. 
+The overall precision and recall
+of APEx are 77\% and 47\%, respectively.
+
+These limitations restrict the 
+applicability of the tools relying on error specifications.
+%
+For instance, the state-of-the-art work to detect error handling bugs~\cite{jana2016automatically} still
+requires manually supplying error specifications,
+%to detect error handling bugs in OpenSSL and Linux,
+since automatically generated error specifications are not yet precise enough,
+or even missing for internal functions.
+
 
 \section{Research Goals}
 
@@ -494,9 +584,18 @@ This class of errors is called as nontructural errors,
 and existing error debuggers fail to generate precise and informative error messages for such errors.
 In this dissertation, I will present a machine learning-based solution that delivers high quality error messages to fix nonstructural errors.
 %
-Inspired by introducing machine learning techniques to debug type errors,
-I have explored other possible directions in error debugging,
-and I will show that machine learning is also efficient and effective to help detect error handling bugs.
+
+In regard to generate error specifications for helping detect error handling bugs,
+I will present a machine learning-based approach named \newTool. 
+It generates error specifications by analyzing only the source code, 
+and is thus general. 
+%
+A novel machine learning paradigm is proposed based on transfer learning,
+enabling \newTool\ to require only one-time minimal data labeling from us (as the tool developers)
+and zero manual labeling efforts from users.
+%
+To improve the accuracy of generated error specifications,
+\newTool\ extracts and exploits project-specific information.
 
 
 \section{Contributions and Outline of This Dissertation}
@@ -577,9 +676,9 @@ This chapter contains material from \cite{wu2017learning} and makes the followin
 \item The evaluation results of the proposed solution are given, demonstrating that the machine learning-based error debugger is effective and scalable.
 \end{enumerate}
 
-Chapter~\ref{sec:app} (\emph{Helping Debug Other Kind of Errors}) 
-presents the challenges in the line of applying machine learning to help debug errors.
-Specifically, we study how to automatically generate precise error specifications in C,
+Chapter~\ref{sec:app} (\emph{Learning Precise Error Specifications}) 
+presents the challenges in the line of applying machine learning to help debug C programming errors.
+Specifically, we study how to automatically generate precise error specifications,
 which are the useful information used by existing tools to detect and fix error handling bugs.
 This chapter contains material from \cite{Wu:2019:GPE:3366395.3360586} and makes the following contributions.
 
@@ -838,48 +937,6 @@ Note that SHErrLoc performs better than the underlying compiler Helium,
 \newCompiler\ and SHErrLoc may be combined 
 to achieve high error locating accuracy.
 
-\subsection{Machine Learning on Programming Languages}
-
-There have been many approaches that use machine learning to solve
-programming language problems. Many of them exploit syntactic
-information of programs. One such work is code modeling and code completion
-for PHOG \cite{Bielik2016:PPM}.
-The work by \cite{Allamanis:2013:MSC:2487085.2487127}
-mines a massive amount of code
-repositories to determine the productivity of programming languages.
-By considering the
-uniqueness of identifiers between code bases, this work
-determines whether code in a Javascript framework is
-utility or core logic \cite{Allamanis:2013:MSC:2487085.2487127}.
-Our work considers some syntactic information, for example
-program structures around the error cause, as part of the feature
-vector for machine learning.
-%
-There has been
-some work that involves semantics, such as detecting semantic
-duplication of code \cite{Sheneamer:2016:SCD}.
-
-The program synthesis community has also adopted machine learning.
-The work by \cite{Ellis:2015:ULP:2969239.2969348} provides a basis for
-unsupervised learning via program synthesis.
-DeepCoder \cite{DBLP:journals/corr/BalogGBNT16} uses input and output
-examples and a DSL to learn to write
-basic programs for programming competitions.
-The work by \cite{Zhu16:ALSS} used machine learning to learn
-the shape of data structures. \cite{Heule:2016:SSA:2980983.2908121}
-synthesized a semantics for x86-64 instructions by using program
-synthesis to learn bit-vector formulas, which will be leveraged
-by SMT solvers.
-%
-By using program synthesis, \cite{Bielik16:LSAD} constructed a static
-analyzer from a data set.
-It generated programs beyond the data set for use as counter-examples,
-which provide corner cases for the analyzer to verify that the
-static analysis generalizes well.
-The main difference between their work
-and ours is that they learn a static analysis by
-using runnable programs, while we use language semantics
-to determine why the input program can't run.
 
 \section{Static Bug Detection}
 \label{sec:review:bugdetector}
@@ -936,7 +993,50 @@ it employs a strong assumption that error return values are always constants,
 leading to low precision of error specifications.
 %As a result, the precision of error specifications generated by LFI is low.
 \newTool\ does not rely on any assumption about error values.
-It generates error specifications based on the learned relation between a set of features and error paths
+It generates error specifications based on the learned relation between a set of features and error paths.
+
+\section{Machine Learning on Programming Languages}
+
+There have been many approaches that use machine learning to solve
+programming language problems. Many of them exploit syntactic
+information of programs. One such work is code modeling and code completion
+for PHOG \cite{Bielik2016:PPM}.
+The work by \cite{Allamanis:2013:MSC:2487085.2487127}
+mines a massive amount of code
+repositories to determine the productivity of programming languages.
+By considering the
+uniqueness of identifiers between code bases, this work
+determines whether code in a Javascript framework is
+utility or core logic \cite{Allamanis:2013:MSC:2487085.2487127}.
+Our work considers some syntactic information, for example
+program structures around the error cause, as part of the feature
+vector for machine learning.
+%
+There has been
+some work that involves semantics, such as detecting semantic
+duplication of code \cite{Sheneamer:2016:SCD}.
+
+The program synthesis community has also adopted machine learning.
+The work by \cite{Ellis:2015:ULP:2969239.2969348} provides a basis for
+unsupervised learning via program synthesis.
+DeepCoder \cite{DBLP:journals/corr/BalogGBNT16} uses input and output
+examples and a DSL to learn to write
+basic programs for programming competitions.
+The work by \cite{Zhu16:ALSS} used machine learning to learn
+the shape of data structures. \cite{Heule:2016:SSA:2980983.2908121}
+synthesized a semantics for x86-64 instructions by using program
+synthesis to learn bit-vector formulas, which will be leveraged
+by SMT solvers.
+%
+By using program synthesis, \cite{Bielik16:LSAD} constructed a static
+analyzer from a data set.
+It generated programs beyond the data set for use as counter-examples,
+which provide corner cases for the analyzer to verify that the
+static analysis generalizes well.
+The main difference between their work
+and ours is that they learn a static analysis by
+using runnable programs, while we use language semantics
+to determine why the input program can't run.
 
 \chapter{Understanding Type Error Debugging}
 \label{sec:background}
@@ -5182,7 +5282,7 @@ As a result, the approach used by \newCompiler\
 is scalable, making it a practical design for
 a type error debugger intended to work on large applications.
 
-\chapter{Helping Debug Other Kind of Errors}
+\chapter{Learning Precise Error Specifications}
 \label{sec:app}
 
 
@@ -5277,7 +5377,7 @@ u8 *nfc\_llcp\_build\_tlv (...)
 \}
 \end{Verbatim}
 \end{subfigure}
-\caption{An example of an error handling bug.
+\caption[An example of an error handling bug]{An example of an error handling bug.
 Function \prog{nfc\_llcp\_build\_tlv()} returns NULL on error (marked in italic-red)
 and the start address of the allocated memory (marked in bold-green) on success.}
 \label{fig:errhandlingbug}
@@ -5319,7 +5419,7 @@ int ZEXPORT deflatePrime (
   return \correctline{Z\_OK};
 \}
 \end{Verbatim}
-\caption{An example error specification.
+\caption[An example error specification]{An example error specification.
 The function \prog{deflatePrime()} returns 
 \prog{Z\_STREAM\_ERROR} and \prog{Z\_BUF\_ERROR} on error (marked in italic-red)
 while returns \prog{Z\_OK} on success (marked in bold-green).
@@ -5462,7 +5562,7 @@ to classify all paths as error or non-error in the new project.
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\linewidth]{images/errspec_arch.pdf}
-\caption{The workflow of \newTool.
+\caption[The workflow of \newTool]{The workflow of \newTool.
 Given a new project, 
 \newTool\ first samples its most likely error and non-error paths in source code as the training data (Section~\ref{sec:app:learning:phase1}), 
 from which a project-specific model is learned for classifying all paths in the new project (Section~\ref{sec:app:learning:phase2}). 
@@ -5587,7 +5687,7 @@ and observed that its error path prediction accuracy is about 65\% only.
     \caption{Two-phase \paradigm}
     \label{fig:mmodels:tphase}
 \end{subfigure}
-\caption{Different learning \paradigm{s}. 
+\caption[Different learning \paradigm{s}]{Different learning \paradigm{s}. 
 Obtaining the light-grey and dark-grey objects 
 need manual labeling efforts from the researcher and the user, respectively.
 Each dotted arrow denotes the direction of learning a model from labeled paths,
@@ -5614,7 +5714,7 @@ int vlc_sem_post(vlc_sem_t *sem)
   \errline{return EINVAL;}
 \}
 \end{Verbatim}
-\caption{An example of error and non-error paths in VLC.
+\caption[An example of error and non-error paths in VLC]{An example of error and non-error paths in VLC.
 The path returning 0 (marked in bold-green) is a non-error path, 
 while that returning \prog{EINVAL} (marked in italic-red) is an error path.
 }
@@ -5763,7 +5863,7 @@ ID & Summary & Feature Values  \\
 13 & Presence of the called functions in set \nerrsetLastFunc & Nominal [0 $\sim$ 1]\\ 
 \bottomrule
 \end{tabular}
-\caption{An overview of path features. 
+\caption[An overview of path features]{An overview of path features. 
 The first seven features are universal features,
 and the rest are project-specific features.
 %We use the short name expr for expression.
@@ -5976,7 +6076,7 @@ Thus, the features used in our work are statistically correlated with error/non-
 & 13 & 7.8e-56 & 1.4e-66 & 1.5e-49 & 247.8 &  297.1 & 219.0 \\
 \bottomrule
 \end{tabularx}
-\caption{Results of Chi-square analysis.
+\caption[Results of Chi-square analysis on path features]{Results of Chi-square analysis.
 For all three projects, the $p$-value of each feature is smaller than 0.05.
 Moreover, the $\mathcal{X}^2$ scores of project-specific features
 are in general higher than those of universal features.
@@ -6018,7 +6118,7 @@ containing both universal and project-specific features.
     \caption{With universal and project-specific features.}
     \label{fig:distri2:all}
 \end{subfigure}
-\caption{t-SNE visualization of path distributions in httpd with and without project-specific features.
+\caption[t-SNE visualization of path distributions in httpd]{t-SNE visualization of path distributions in httpd with and without project-specific features.
 The error and non-error paths are easily separated after considering project-specific features.}
 \label{fig:distri2}
 \end{figure}
@@ -6191,7 +6291,7 @@ automatically identify a set of error and non-error paths as the training data f
     \caption{Linux}
     \label{fig:distri3:linux}
 \end{subfigure}
-\caption{t-SNE visualization of path distributions based on universal features in libc and Linux.
+\caption[t-SNE visualization of path distributions in libc and Linux]{t-SNE visualization of path distributions based on universal features in libc and Linux.
 The path distribution of libc is quite different from that of Linux.}
 \label{fig:distri3}
 \end{figure}
@@ -6264,7 +6364,8 @@ static long do\_sys\_truncate (...)
 \}
 \end{Verbatim}
 \end{subfigure}
-\caption{An example that paths from two different projects share similar characteristics,
+\caption[An example that two similar paths]
+{An example that paths from two different projects share similar characteristics,
 such as the path length, the number of if-conditions, and the kind of return value.
 Functions \prog{shrink\_heap()} and \prog{do\_sys\_truncate()}
 return -1 and \prog{-EINVAL} to represent errors, respectively.
@@ -6740,7 +6841,7 @@ In Section~\ref{sec:app:eval:performance}, we evaluate the runtime aspect of \ne
 \multicolumn{2}{c|}{Overall} & 3,445 & 17,750 & 29.20 (\stdf{25.73}) & 6.16 (\stdf{5.94}) & All values &  $\errv$ $\ge$ 0 \\
 \bottomrule
 \end{tabular}
-\caption{Study subjects.
+\caption[Study subjects for \newTool]{Study subjects.
 We randomly selected functions from each study subject.
 For each function, we evaluated all its paths.
 %We treat the C library macros \prog{NULL} and \prog{false} as negative values
@@ -6871,10 +6972,10 @@ for the purpose of constructing the learned training set.
 \midrule
 %\# of labeled path & 612 & 166 & 273 & 225 & 293 & 122 & 41 & 238 & 120 & 137 & 2,237 \\
 %Labeled paths & 0.678 & 0.282 & 0.556 & 0.312 & 0.472 & 0.368 & 0.057 & 0.319 & 0.127 & 0.226 \\
-Precision & 0.957 & 0.920 & 0.965 & 0.955 & 0.952 & 0.953 & 0.950 & 0.944 & 0.942 & 0.958 \\
+Accu. & 0.957 & 0.920 & 0.965 & 0.955 & 0.952 & 0.953 & 0.950 & 0.944 & 0.942 & 0.958 \\
 \bottomrule
 \end{tabular}
-\caption{Accuracy of the learned training set for each project.
+\caption[Accuracy of LTS for each project]{Accuracy of the learned training set for each project.
 The overall precision is 94.6\%.
 To save space, we use the short names SSL, TLS, and gcrypt for
 OpenSSL, GnuTLS, and Libgcrypt, respectively.}
@@ -6982,7 +7083,7 @@ results are representative.
 \multicolumn{2}{c|}{Overall} & 0.912 & 0.891 & 0.901 & 0.790 & 0.903 & 0.843 \\
 \bottomrule
 \end{tabularx}
-\caption{Results of error path prediction with/without project-specific features.
+\caption[Results of error path prediction]{Results of error path prediction with/without project-specific features.
 The results for ``with project-specific features'' are described in Section~\ref{sec:app:features:uni}
 and their difference with those for ``without project-specific features'' are described in Section~\ref{sec:app:features:pp}.}
 \label{fig:evalpathm}
@@ -7040,7 +7141,7 @@ The precision keeps the same no matter which $N$ we use.
 \multicolumn{2}{c|}{Overall} & 0.91 & 0.77 & 0.78 & 0.94 & 0.47 \\
 \bottomrule
 \end{tabularx}
-\caption{Results of generated error specifications.
+\caption[Results of generated error specifications]{Results of generated error specifications.
 The recall values in column ``\newTool*'' are calculated by 
 filtering out the cases that lack necessary source code.
 The overall \accu\ of \newTool\ and APEx is
@@ -7118,7 +7219,7 @@ err\_cleanup:
   \errline{return ERR\_PTR(err);}
 \}
 \end{Verbatim}
-\caption{An example of project-specific features helps predict error paths.
+\caption[An example of the usefulness of project-specific features]{An example of project-specific features helps predict error paths.
 The line marked red represents an error return,
 while the line marked green represents a correct return.}
 \label{fig:psfeature-use}
@@ -7208,7 +7309,7 @@ Error spec generation & 3.15 & 2.39 & 2.30 & 1.43 & 1.73 \\
 Total & 6,476.62 & 1,744.09 & 2,032.97 & 904.05 & 481.69 \\
 \bottomrule
 \end{tabular}
-\caption{Performance of \newTool\ in seconds.
+\caption[Performance of \newTool]{Performance of \newTool\ in seconds.
 The runtimes for Linux and zlib are the largest and smallest among all the evaluated projects, respectively,
 while those for libc, httpd and GnuTLS are in-between.
 The times are measured on CentOS 6.7 with 1 Intel i7-3940xm processor and 16 GB memory.}
@@ -7272,7 +7373,7 @@ out:
   return err;
 \}
 \end{Verbatim}
-\caption{An example of an incorrect error code assignment.
+\caption[An example of an incorrect error code assignment]{An example of an incorrect error code assignment.
 Function \prog{nbd\_init()} returns \prog{0} and negative values to represent success and error, respectively.}
 \label{fig:errbug}
 \end{figure}
@@ -7333,7 +7434,7 @@ OpenSSL & 3 & 0 & 2 & 0.66 \\
 Total & 72 &  48 & 9 & 0.79 \\
 \bottomrule
 \end{tabular}
-\caption{Results of detecting potential incorrect error code assignments.
+\caption[Results of detecting incorrect error code assignments]{Results of detecting potential incorrect error code assignments.
 %The ``Reported'' bugs are those cause conflicting situations in \bugTool\ results.
 The ``Known'' bugs are those that have already been fixed by developers. 
 The ``Unknown'' bugs are 
