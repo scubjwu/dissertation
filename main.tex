@@ -6817,6 +6817,7 @@ In Section~\ref{sec:app:eval:performance}, we evaluate the runtime aspect of \ne
 \subsection{Study Subjects}
 \label{sec:app:eval:subjects}
 
+\iffalse
 \begin{figure}[t]
 \centering
 \begin{tabular}{c l | c | c | c | c | c | c }
@@ -6839,6 +6840,45 @@ In Section~\ref{sec:app:eval:performance}, we evaluate the runtime aspect of \ne
 & wget & 154 & 734 & 22.54 (\stdf{12.36}) & 4.09 (\stdf{3.47}) & $\errv$ < 0 & $\errv$ $\ge$ 0\\
 \midrule
 \multicolumn{2}{c|}{Overall} & 3,445 & 17,750 & 29.20 (\stdf{25.73}) & 6.16 (\stdf{5.94}) & All values &  $\errv$ $\ge$ 0 \\
+\bottomrule
+\end{tabular}
+\caption[Study subjects for \newTool]{Study subjects.
+We randomly selected functions from each study subject.
+For each function, we evaluated all its paths.
+%We treat the C library macros \prog{NULL} and \prog{false} as negative values
+%and \prog{true} as positive value.
+The values in ``Funcs'' and ``Paths'' columns represent the number of evaluated functions and paths
+in each project, respectively.
+The columns marked with an asterisk include
+average value and the corresponding standard deviation (in bold italic).
+We use the short names Err and NErr for Error and Non-Error, respectively.
+}
+\label{fig:evalsubjects}
+\end{figure}
+\fi
+
+\begin{figure}[t]
+\centering
+\begin{tabular}{l | c | c | c | c | c | c }
+\toprule
+%ID &  Message information contained in the category \\
+& Funcs & Paths  & Path len* & Func calls* & Err range & NErr range \\
+\midrule
+%\multirow{6}{*}{Libs} 
+zlib & 159 & 1001 & 30.40 (\stdf{36.84}) & 2.27 (\stdf{2.53}) & $\errv$ $\le$ 0 &  $\errv$ $\ge$ 0 \\
+Libgcrypt & 500 & 1740 & 21.37 (\stdf{13.73}) & 2.68 (\stdf{2.28}) & $\errv$ = -1 or $\errv$ $\ge$ 0  & $\errv$ $\ge$ 0 \\
+OpenSSL & 129 & 824 & 25.70 (\stdf{15.37}) & 6.97 (\stdf{4.74}) & $\errv$ $\le$ 0  & $\errv$ > 0 \\
+GTK+ & 141 & 429 & 15.49 (\stdf{16.83}) & 3.72 (\stdf{3.19}) & $\errv$ < 0 & $\errv$ $\ge$ 0 \\
+libc & 500 & 2432 & 45.82 (\stdf{30.25}) & 9.14 (\stdf{5.11}) & $\errv$ = -1 or $\errv$ > 0  & $\errv$ $\ge$ 0 \\
+GnuTLS & 260 & 1352 & 14.43 (\stdf{9.59}) & 3.96 (\stdf{3.36}) & $\errv$ $\le$ 0  & $\errv$ $\ge$ 0 \\
+\midrule
+%\multirow{4}{*}{Apps}
+Linux & 1000 & 6245 & 30.16 (\stdf{20.15}) & 6.89 (\stdf{7.52}) & $\errv$ $\le$ 0  & $\errv$ $\ge$ 0\\
+httpd & 500 & 2421 & 36.04 (\stdf{31.56}) & 7.12 (\stdf{9.41}) & $\errv$ = -1 or $\errv$ > 0  & $\errv$ $\ge$ 0\\
+VLC & 102 & 572 & 25.96 (\stdf{16.98}) & 7.51 (\stdf{5.13}) & $\errv$ $\le$ 0  & $\errv$ $\ge$ 0\\
+wget & 154 & 734 & 22.54 (\stdf{12.36}) & 4.09 (\stdf{3.47}) & $\errv$ < 0 & $\errv$ $\ge$ 0\\
+\midrule
+Overall & 3,445 & 17,750 & 29.20 (\stdf{25.73}) & 6.16 (\stdf{5.94}) & All values &  $\errv$ $\ge$ 0 \\
 \bottomrule
 \end{tabular}
 \caption[Study subjects for \newTool]{Study subjects.
@@ -7660,8 +7700,24 @@ Other. & 13 \\
 %
 
 \begin{abstract}
-test
+
+The main purpose of this research is to explore applying 
+machine learning to improve programming error reporting.
+%
+
+
 \end{abstract}
+
+\begin{biography}
+
+Baijun Wu has been a PhD student in the Center for Advanced
+Computer Studies (CACS) at University of Louisiana at Lafayette since Spring 2014.
+He obtained his B.S. and M.S. degrees from the School of Computer Science,
+Sichuan University in 2008 and 2011, respectively.
+His research focuses on applying machine learning techniques to solve
+problems in software engineering and networking.
+
+\end{biography}
 
 \end{document}
 % The following comment block is used by the different flavors of EMACS and
