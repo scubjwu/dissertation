@@ -216,7 +216,7 @@ Doctor of Philosophy, University of Louisiana at Lafayette, \thegraduationmonth 
 % List all of your degrees, including the degree you are seeking with
 % this document!
 
-\abstractwordcount{120}
+\abstractwordcount{240}
 % The number of words in your abstract.
  % Unfortunately there is no clean way to count words in a section in Latex.
   
@@ -7704,6 +7704,32 @@ Other. & 13 \\
 The main purpose of this research is to explore applying 
 machine learning to improve programming error reporting.
 %
+In the first part of this dissertation, I present the empirical study about
+how type error were fixed and what students did.
+The investigation results demonstrate that current error debugging support is
+far from sufficient in practice, where the located error causes for more than 50\% of 
+type errors are incorrect and the corresponding change suggestions are ineffective.
+%
+I provide a fundamental understanding of why existing error debuggers do not work
+well for nonstructural type errors.
+To address this issue, a machine learning-base type error debugger, \newCompiler, is developed.
+The evaluations results show that \newCompiler\ could locate the error causes for nonstructural type errors
+several times more accurate than the state-of-the-art tools.
+%
+In the second part, I study how to precisely infer error specifications in C.
+Error specifications, which speficy the value range that each function returns to indicate failures,
+are widely used to check and propagate errors for the sake of reliability and security.
+%
+I propose a general method, \newTool, that can automatically generate error specifications
+by analyzing only the source code.
+\newTool\ utilizes the idea of transfer learning,
+and therefore requires zero manual efforts to label data during the learning process.
+%
+Error specifications are useful to detect bugs.
+As one example, I present how the results of \newTool\ can be used
+to find new error handling bugs in real-world projects.
+
+ 
 
 
 \end{abstract}
